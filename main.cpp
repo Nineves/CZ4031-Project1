@@ -3,7 +3,7 @@
 #include <iostream>
 #include "Storage.h"
 #include "Storage.cpp"
-#include "Calculations.cpp"
+#include "Calculation.cpp"
 #include <cstdlib>
 #include <fstream> //ifstream
 #include <sstream>  // stringstream
@@ -11,44 +11,48 @@
 #include <iomanip>  // ws
 #include <map>      // map
 #include <string>
-#include "BPlusTree.h"
-#include "BPlusTree.cpp"
+//#include "bplustree.h"
+//#include "bplustree.cpp"
 #pragma pack(1)
 
 using std::cout;
 
 void store_records(Storage* storage);
 void RunExperiment1(Storage *storage);
-BPlusTree* RunExperiment2(Storage *storage);
-void RunExperiment3(Storage* storage, BPlusTree *bPlusTree);
-void RunExperiment4(Storage* storage, BPlusTree *bPlusTree);
-void RunExperiment5(Storage *storage, BPlusTree *bPlusTree, int key);
-void build_BPlus_tree(Storage *storage, BPlusTree *bPlusTree);
-void report_bPlusTree_statistics(BPlusTree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content);
-void delete_records(Storage *storage, BPlusTree *bPlusTree, int key);
-void delete_key_in_index(BPlusTree *bPlusTree, int key);
+
+/*
+bplustree* RunExperiment2(Storage *storage);
+void RunExperiment3(Storage* storage, bplustree *bPlusTree);
+void RunExperiment4(Storage* storage, bplustree *bPlusTree);
+void RunExperiment5(Storage *storage, bplustree *bPlusTree, int key);
+void build_BPlus_tree(Storage *storage, bplustree *bPlusTree);
+void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content);
+void delete_records(Storage *storage, bplustree *bPlusTree, int key);
+void delete_key_in_index(bplustree *bPlusTree, int key);
 void delete_records_in_db(Storage *storage, vector<char *> record_addresses);
 vector<char *> get_all_record_addr(CLeafNode *start_node, int start, int end = 0);
+*/
+
 void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_results_addresses);
-void retrieve_search_statistics_index(BPlusTree *bPlusTree, CLeafNode *start_node, int start, int end = 0);
+
+/*
+void retrieve_search_statistics_index(bplustree *bPlusTree, CLeafNode *start_node, int start, int end = 0);
 vector<CLeafNode *> get_nodes_accessed_at_leaf_level(CLeafNode *start_node, int start, int end);
+*/
+
 
 
 //global variables
-Calculations cals;
+Calculation cals;
 int blockSize;
 int storage_size;
 Storage *storage;
-BPlusTree *bPlusTree;
+//bplustree *bPlusTree;
 
 int main()
 {
 
     blockSize = 200;
-
-
-    cout << "Initializing block size to " << blockSize << "B...\n";
-    //code to initialize block size to 200B
 
     storage_size = cals.GetMaxSizeOfRecordBlocks(blockSize);
     int reservation = 1000000;
@@ -56,12 +60,11 @@ int main()
     cout << "Initialization complete. Block size has been set to " << blockSize << "B.\n";
     cout << "Allocation complete. Disk storage of size " << ((storage_size + reservation) / (double)1000000) << "MB is now allocated.\n";
     cout << "Allocated storage is now empty, please run experiment 1 to load data.\n"<<endl;
-    char sel2 = 'n';
-    while (sel2 != '6')
+    char sel = 'n';
+    while (sel != '6')
     {
-        cout << "Please select one of the options below. (0, 1, 2, 3, 4, 5, or 6)\n";
-        cout << "0. Change block size (200B or 500B)\n"
-             << "1. Run experiment 1\n"
+        cout << "Please select one of the options below. (1, 2, 3, 4, 5, or 6)\n";
+        cout << "1. Run experiment 1\n"
              << "2. Run experiment 2\n"
              << "3. Run experiment 3\n"
              << "4. Run experiment 4\n"
@@ -72,53 +75,35 @@ int main()
         do{
             validSelection = true;
             cout << "Selection: ";
-            cin >> sel2;
-            cout << "You have selected option " << sel2 << ".\n"<<endl;
-            switch (sel2)
+            cin >> sel;
+            cout << "You have selected option " << sel << ".\n"<<endl;
+            switch (sel)
             {
-            case '0':
-            {
-
-                
-                blockSize = BLOCK_SIZE;
-
-                cout << "Deallocating storage...\n";
-                storage->clear_storage();
-                // code to initialize database block size to 200B
-                int storage_size = cals.GetMaxSizeOfRecordBlocks(blockSize);
-                int reservation = 1000000;
-                cout << "Changing database block size to " << blockSize << "B...\n";
-                storage = Storage(storage_size + reservation, blockSize).addr_of_object();
-                cout << "Change complete. Block size has been set to " << blockSize << "B.\n";
-                cout << "Allocation complete. Disk storage of size " << ((storage_size+reservation)/(double)1000000) << "MB is now allocated.\n";
-
-                break;
-            }
             case '1':
-                {
+            {
                     cout << "Running experiment 1...\n";
                     RunExperiment1(storage);
                     cout << "Completed experiment 1...\n"<<endl;
                     break;
-                }
+            }
             case '2':
             {
                 cout << "Running experiment 2...\n";
-                bPlusTree = RunExperiment2(storage);
+                //bPlusTree = RunExperiment2(storage);
                 cout << "Completed experiment 2...\n"<<endl;
                 break;
             }
             case '3':
             {
                 cout << "Running experiment 3...\n";
-                RunExperiment3(storage, bPlusTree);
+                //RunExperiment3(storage, bPlusTree);
                 cout << "Completed experiment 3...\n"<<endl;
                 break;
             }
             case '4':
             {
                 cout << "Running experiment 4...\n";
-                RunExperiment4(storage, bPlusTree);
+                //RunExperiment4(storage, bPlusTree);
                 cout << "Completed experiment 4...\n"<<endl;
                 break;
             }
@@ -126,7 +111,7 @@ int main()
              {
                 cout << "Running experiment 5...\n";
                 // code to run experiment 5
-                RunExperiment5(storage, bPlusTree, 1000);
+                //RunExperiment5(storage, bPlusTree, 1000);
                 cout << "Completed experiment 5...\n"<<endl;
                 break;
              }
@@ -154,16 +139,17 @@ void RunExperiment1(Storage *storage)
     cout << "Loading data complete.\n";
 }
 
-BPlusTree* RunExperiment2(Storage *storage)
+/*
+bplustree* RunExperiment2(Storage *storage)
 {
-    BPlusTree* bPlusTree = new BPlusTree(cals.GetMaxNumOfKeysPerIndexBlock(storage->get_blk_size()));
+    bplustree* bPlusTree = new bplustree(cals.GetMaxNumOfKeysPerIndexBlock(storage->get_blk_size()));
     build_BPlus_tree(storage, bPlusTree);
     report_bPlusTree_statistics(bPlusTree, storage->get_blk_size(), true, true, true, true);
     return bPlusTree;
 }
 
 // need to incorporate the Linked list and B+tree portion into the wrapper function if it is to be inside it.
-void RunExperiment3(Storage* storage, BPlusTree *bPlusTree)
+void RunExperiment3(Storage* storage, bplustree *bPlusTree)
 {
     int key_to_find = 500;
     CLeafNode *start_node = bPlusTree->SearchLeafNode(key_to_find);
@@ -173,7 +159,7 @@ void RunExperiment3(Storage* storage, BPlusTree *bPlusTree)
     retrieve_search_statistics_index(bPlusTree, start_node, key_to_find);
 }
 
-void RunExperiment4(Storage* storage, BPlusTree* bPlusTree)
+void RunExperiment4(Storage* storage, bplustree* bPlusTree)
 {
     int start_of_range = 30000;
     int end_of_range = 40000;
@@ -184,13 +170,16 @@ void RunExperiment4(Storage* storage, BPlusTree* bPlusTree)
     retrieve_search_statistics_index(bPlusTree, start_node, start_of_range, end_of_range);
 }
 
-void RunExperiment5(Storage *storage, BPlusTree *bPlusTree, int key)
+void RunExperiment5(Storage *storage, bplustree *bPlusTree, int key)
 {
     delete_records(storage, bPlusTree, key);
     report_bPlusTree_statistics(bPlusTree, storage->get_blk_size(), false, true, true, true);
     cout << "Number of times that a node is deleted = " << num_nodes_deleted << "\n"
     << "Note: it does not include the number of Parrays deleted (level between leaf nodes and records)"<<endl;
 }
+
+*/
+
 
 // experiment 1 helper code
 void store_records(Storage *storage)
@@ -245,30 +234,12 @@ void store_records(Storage *storage)
     return;
 }
 
-// experiment 2 helper code
-void build_BPlus_tree(Storage *storage, BPlusTree *bPlusTree)
-{
-    int offset = storage->get_blk_size();
-    char *curr_block_ptr = (char *)storage->get_storage_ptr();
-    int num_allocated_blocks = storage->get_allocated_nof_blk();
-    for (int i = 0; i < num_allocated_blocks; i++)
-    {
-        vector<Record> curr_block_records = storage->retrieve_blk(curr_block_ptr);
-        for (int j = 0; j < curr_block_records.size(); j++)
-        {
-            Record curr_record = curr_block_records.at(j);
-            int numVotes = curr_record.getNumOfVotes();
-            // cout << "first call to insert\n";
-            char *original_record_pointer = curr_block_ptr + j * (sizeof(Record));
-            bPlusTree->Insert(numVotes, (Record*)original_record_pointer);
-        }
-        curr_block_ptr += offset;
-    }
-}
+/*
 
-void report_bPlusTree_statistics(BPlusTree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content)
+
+void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content)
 {
-    Calculations cals = Calculations();
+    Calculation cals = Calculations();
     if (parameter_n)
     {
         cout << "Parameter n of B+ tree: " << cals.GetMaxNumOfKeysPerIndexBlock(block_size) << endl; // could change depending on BPlusTree/CNode attributes
@@ -316,7 +287,7 @@ void report_bPlusTree_statistics(BPlusTree *bPlusTree, int block_size, bool para
     }
 }
 
-// experiment 3 and 4 helper code
+// experiment 3 and 4
 vector<char *> get_all_record_addr(CLeafNode *start_node, int start, int end)
 {
 
@@ -415,7 +386,7 @@ void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_
 
     return;
 }
-void retrieve_search_statistics_index(BPlusTree* bPlusTree, CLeafNode* start_node, int start, int end){
+void retrieve_search_statistics_index(bplustree* bPlusTree, CLeafNode* start_node, int start, int end){
     if (end == 0)
     {
         end = start;
@@ -499,7 +470,7 @@ vector<CLeafNode*> get_nodes_accessed_at_leaf_level(CLeafNode* start_node, int s
     return nodes_accessed;
 }
 
-// helper code for experiment 5
+// experiment 5
 void delete_records_in_db(Storage *storage, vector<char *> record_addresses)
 {
 
@@ -509,7 +480,7 @@ void delete_records_in_db(Storage *storage, vector<char *> record_addresses)
     }
 }
 
-void delete_key_in_index(BPlusTree *bPlusTree, int key)
+void delete_key_in_index(bplustree *bPlusTree, int key)
 {
     bool res = bPlusTree->Delete(key);
     if (res)
@@ -522,7 +493,7 @@ void delete_key_in_index(BPlusTree *bPlusTree, int key)
     }
 }
 
-void delete_records(Storage *storage, BPlusTree *bPlusTree, int key)
+void delete_records(Storage *storage, bplustree *bPlusTree, int key)
 {
     CLeafNode *start_node = bPlusTree->SearchLeafNode(key);
     vector<char *> record_addresses = get_all_record_addr(start_node, key);
@@ -532,3 +503,6 @@ void delete_records(Storage *storage, BPlusTree *bPlusTree, int key)
     delete_key_in_index(bPlusTree, key);
     cout << "Finished deleting records from storage and updating B+ tree\n";
 }
+
+
+*/

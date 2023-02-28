@@ -1,4 +1,4 @@
-class Calculations 
+class Calculation 
 {
     public:
         // Record
