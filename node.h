@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "defined_structures.h"
+#include "Record.h" 
 
 using namespace std;
 
@@ -13,18 +14,28 @@ class Node
 private:
     int maxNumOfKeys;
     int curNumOfKeys;
-    Address *parentAddr;
-    vector<int> keys;
-    vector<Address*> pointers;
+    size_t blockSize;
+    Node *parentAddr;
+    Node *nextLeafNode;
+    int* keys;
+
+    union {
+        Node ** nodePointers;
+        LLNode ** dataPointers;
+    }ptrs;
+
 
     bool isLeaf;
 
     friend class BPTree; 
 
-    int getMaxKeys(size_t nodeCapacity);
-
 public:
-    Node(size_t blockSize);
+    int getMaxKeys(size_t nodeCapacity);
+    void insertNonLeafKey(int key, Node *newNodeAddress);
+    int insertLeafKey(int key, Record* recordAddress);
+    void doShift(int start);
+    void updateKey(int preKey, int curKey);
+    Node(size_t blockSize, bool isLeaf);
     ~Node();
     int getMaxKeyNum();
 };
@@ -33,6 +44,7 @@ Node::~Node()
 {
 }
 
+
 class LLNode
 {
 private:
@@ -40,16 +52,17 @@ private:
     int curNumAddress;
     size_t blockSize;
     
-    vector<Address*> nodeDiskAddresses;
+    Record** recordAddresses;
     LLNode* nextNode;
     LLNode* nodePointer;
 
     friend class BPTree;
 
 public:
-    LLNode(Address *nodeAddr, size_t blockSize);
+    LLNode(size_t blockSize);
+    ~LLNode();
 
-    void insert(Address *newAddress);
+    void insert(Record *newAddress);
 };
 
 

@@ -2,6 +2,8 @@
 #include <vector>
 #include "node.h"
 #include "defined_structures.h"
+#include "Storage.h"
+#include "Record.h"
 
 using namespace std;
 
@@ -12,25 +14,22 @@ class BPTree
 {
 private:
 
-    Memory *dataMem, indexMem;
+    Storage *memory;
     Node *root;                                     //Root node in memory (if loaded)
-    Address *rootAddress;
+    
     int maxNumOfKeys, numOfNodes, numOfLevels;
     size_t blockSize;
 
-    void insertInNode(Node *node, int key, Address *newNodeAddress);
-    void insertInnerNode(Node *curNode, int key, Address *childAddr);
-    void doShift(Node *node, int start);
-    void doInnerShift(Node *node, int start);
-    void updateParents();
 
 public:
 
-    BPTree(size_t nodeSize, Memory *dataMem, Memory *indexMem);
+    BPTree(size_t nodeSize);
 
-    void insert(int key, Address *recordAddress);
+    void insert(int key, Record *recordAddress);
 
     void remove(int key);
+
+    int split(Node *nodeToSplit, int key, Node* insertNode);
 
     void searchSingle(int key);
 
@@ -40,7 +39,7 @@ public:
 
     void displayNode(Node* curNode);
 
-    void updateParents(int newKey, Address *parentAddr, Address *childAddr);
+    void updateParents(int newKey, Node *parentAddr, Node *childAddr);
  
 };
 
