@@ -1,12 +1,12 @@
 #include <iostream>
 #include "Storage.h"
-#include "BlockInfo.h"
+#include "Block.h"
 #include "Record.h"
 #include "Record.cpp"
 #include "constants.h"
 #include <stdio.h>
 #include <string.h>
-#include "BlockInfo.cpp"
+#include "Block.cpp"
 #pragma pack(1)
 
 using std::cout;
@@ -25,8 +25,8 @@ Storage::Storage(unsigned int storage_size, unsigned int blk_size){
 
     this->deleted_slots = {};
 
-    this->blks = (BlockInfo*)malloc(total_nof_blk * sizeof(BlockInfo));
-    BlockInfo init = BlockInfo(blk_size);
+    this->blks = (Block*)malloc(total_nof_blk * sizeof(Block));
+    Block init = Block(blk_size);
     for (int i = 0; i <total_nof_blk; i++) {
         blks[i] = init;
     }
@@ -73,9 +73,11 @@ pair<int, char*> Storage::get_available_ptr(int store_size) {
 unsigned int Storage::get_blk_id(char* addr) {
     return (addr - (char*)storage_ptr) / blk_size;
 }
+
 /*
 Insert a record to the storage memory.
 */
+
 char* Storage::insert_item(void* item_addr, int item_size) {
     if (item_size > blk_size) {
         cout<<"Insertion fails since the record size is larger than the block size!"<<endl;
