@@ -12,6 +12,8 @@ Node::Node(size_t blockSize, bool isLeaf)
     this->curNumOfKeys = 0;
     this->isLeaf = isLeaf;
     keys = (int*) malloc(maxNumOfKeys * sizeof(int));
+
+    //Intialize pointers for leaf nodes
     if (isLeaf)
     {
         ptrs.dataPointers = (LLNode**)malloc((maxNumOfKeys + 1) * sizeof(LLNode*));
@@ -20,6 +22,8 @@ Node::Node(size_t blockSize, bool isLeaf)
             ptrs.dataPointers[i] = nullptr;
         }
     }
+
+    //Initialize pointers for non-leaf nodes
     else
     {
         ptrs.nodePointers = (Node**)malloc((maxNumOfKeys + 1) * sizeof(Node*));
@@ -38,6 +42,9 @@ Node::Node(size_t blockSize, bool isLeaf)
 
 int Node::getMaxKeys(size_t nodeCapacity)
 {
+    /*
+        Calculate the maximum number of keys that a node can hold.
+    */
     int maxkey = 0;
 
     if (isLeaf)
@@ -65,6 +72,7 @@ int Node::getMaxKeys(size_t nodeCapacity)
             sum += sizeof(Node*) + sizeof(int);
         }
     }
+    return maxkey;
 }
 
 int Node::getMaxKeyNum()
@@ -194,7 +202,7 @@ void LLNode::insert(Record *newAddress)
     }
 }
 
-int getMaxNumAddress(size_t nodeCapacity) {
+int LLNode::getMaxNumAddress(size_t nodeCapacity) {
     int maxNum = 0;
     size_t sum = sizeof(LLNode*);
     if (sum > nodeCapacity) {

@@ -31,6 +31,8 @@ public:
 
     int split(Node *nodeToSplit, int key, Node* insertNode);
 
+    Node* searchLeafNode(int key);
+
     void searchSingle(int key);
 
     void searchRange(int lowerBound, int higherBound);
@@ -40,6 +42,8 @@ public:
     void displayNode(Node* curNode);
 
     void updateParents(int newKey, Node *parentAddr, Node *childAddr);
+
+    void createNewRoot(Node *node1, Node *node2)
  
 };
 

@@ -25,6 +25,8 @@ void BPTree::insert(int key, Record *recordAddress) {
         root = new Node(blockSize, true);
         root->parentAddr = nullptr;
         root->insertLeafKey(key, recordAddress);
+        numOfNodes = 1;
+        numOfLevels = 1;
     }
     /*
         Case 2. The BPTree is not empty.
@@ -37,28 +39,9 @@ void BPTree::insert(int key, Record *recordAddress) {
 
         LLNode *LLNodeAddr;
 
-        /*
-            Finding leaf nodes.
-        */
+        //Traverse down the tree to leaf node
 
-        while (!curNode->isLeaf){
-            parentNode = curNode;
-            for (int i = 0; i < curNode->maxNumOfKeys; i++) {
-                if (curNode->keys[i] > key){
-
-                    Node *nextNodeInDisk = curNode->ptrs.nodePointers[i];
-                    curNode = nextNodeInDisk;                
-                    break;
-                }
-                
-                if (i == curNode -> maxNumOfKeys - 1){
-                    Node *nextNodeInDisk = curNode->ptrs.nodePointers[i + 1];
-                    curNode = nextNodeInDisk;
-                }
-            }
-            curNode->parentAddr = parentNode;
-            
-        }
+        curNode = searchLeafNode(key);
 
         //We've found the leaf node
         //If there is still empty space for the new record, we insert the key and its pointer.
@@ -76,10 +59,11 @@ void BPTree::insert(int key, Record *recordAddress) {
             
         }
 
-        //If there is no empty space, we split the node into two nodes.
+        //If there is no empty space, we split the leaf node into two nodes.
         else {
             int n = floor((curNode->maxNumOfKeys + 1) / 2);
             Node *splitLeafNode = new Node(blockSize, true);
+            numOfNodes ++;
             
             LLNodeAddr = new LLNode(blockSize);
 
@@ -98,7 +82,7 @@ void BPTree::insert(int key, Record *recordAddress) {
             }
 
             //insert in the previous node
-            if (curNode->keys[n-1] >= key)
+            if (curNode->keys[n - 1] >= key)
             {
                 curNode->insertLeafKey(key, recordAddress);
             }
@@ -111,12 +95,64 @@ void BPTree::insert(int key, Record *recordAddress) {
             
             curNode->nextLeafNode = splitLeafNode;
 
-            //update parent nodes
-            updateParents(splitLeafNode->keys[0], parentNode, splitLeafNode);
+            if (numOfLevels == 1) //CurNode is both leaf node and root node
+            {
+                createNewRoot(curNode, splitLeafNode);
+            }
+            else
+            {
+                //update parent nodes
+                updateParents(splitLeafNode->keys[0], parentNode, splitLeafNode);
+            }
+            
+          
         }
 
     }
     
+}
+
+void BPTree::createNewRoot(Node *node1, Node *node2) {
+    Node *newRoot = new Node(blockSize, false);
+    newRoot->ptrs.nodePointers[0] = node1;
+    newRoot->ptrs.nodePointers[1] = node2;
+    newRoot->keys[0] = node2->keys[0];
+    newRoot->curNumOfKeys = 1;
+    numOfLevels ++;
+    numOfNodes ++;
+    
+    node1->parentAddr = newRoot;
+    node2->parentAddr = newRoot;
+    this->root = newRoot;
+    cout << "Created a new root successfully." << endl;
+}
+
+Node* BPTree::searchLeafNode(int key) {
+    Node *curNode = root;
+
+    Node *parentNode = nullptr;
+
+        /*
+            Finding leaf nodes.
+        */
+
+        while (!curNode->isLeaf){
+            parentNode = curNode;
+            for (int i = 0; i < curNode->maxNumOfKeys; i++) {
+                if (curNode->keys[i] > key) {
+                    curNode = curNode->ptrs.nodePointers[i];                
+                    break;
+                }
+                
+                if (i == curNode -> maxNumOfKeys - 1) { 
+                   
+                    curNode = curNode->ptrs.nodePointers[i + 1];;
+                }
+            }
+            curNode->parentAddr = parentNode;           
+        }
+
+    return curNode;
 }
 
 
@@ -124,17 +160,20 @@ void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr) {
 
     Node *curNode = parentAddr;
     
+    //If there is empty space for insertion, we insert the node directly.
     if (curNode->curNumOfKeys < curNode->maxNumOfKeys)
     {
         curNode->insertNonLeafKey(key, childAddr);
+        childAddr->parentAddr = parentAddr;
     }
     else
     {
         /*
-            Splitting a node
+            Splitting a non-leaf node
         */
         Node* nodeToSplit = parentAddr;
         Node* insertNode = childAddr;
+        numOfNodes ++;
         int n = floor((nodeToSplit->maxNumOfKeys + 1) / 2);
         int pos = 0;
         int newKey = -1;
@@ -177,6 +216,7 @@ void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr) {
             splitNonLeafNode->ptrs.nodePointers[0] = insertNode;
             splitNonLeafNode->curNumOfKeys = nodeToSplit->maxNumOfKeys - n;
             newKey = key;
+            childAddr->parentAddr = splitNonLeafNode;
         }
         
 
@@ -191,11 +231,14 @@ void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr) {
         if (pos < n)
         {
             nodeToSplit->insertNonLeafKey(key, insertNode);
+            childAddr->parentAddr = parentAddr;
         }
         else if (pos > n)
         {
             splitNonLeafNode->insertNonLeafKey(key, insertNode);
+            childAddr->parentAddr = splitNonLeafNode;
         }
+    
         /*
             End of splitting node.
         */
@@ -208,6 +251,9 @@ void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr) {
             Node *newRoot = new Node(blockSize, false);
             newRoot->ptrs.nodePointers[0] = parentAddr;
             newRoot->insertNonLeafKey(newKey, splitNonLeafNode);
+
+            numOfLevels ++;
+            numOfNodes ++;
 
             this->root = newRoot;
         }

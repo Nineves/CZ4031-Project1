@@ -63,6 +63,7 @@ public:
     ~LLNode();
 
     void insert(Record *newAddress);
+    int getMaxNumAddress(size_t nodeCapacity);
 };
 
 
