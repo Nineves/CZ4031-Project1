@@ -1,4 +1,4 @@
-#include "BlockInfo.h"
+#include "Block.h"
 #include "Record.h"
 #ifndef STORAGE_H_INCLUDED
 #define STORAGE_H_INCLUDED
@@ -14,7 +14,7 @@ private:
     unsigned int allocated_nof_blk; // number of blocks allocated
     unsigned int allocated_size; // size allocated to store items
     unsigned int cur_blk_id;
-    BlockInfo* blks; // a list of block information, storing available entry in each block
+    Block* blks; // a list of block information, storing available entry in each block
 
     void* storage_ptr; // point to the start address of the memory
 
