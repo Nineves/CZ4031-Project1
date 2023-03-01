@@ -5,12 +5,13 @@
 
 using namespace std;
 
-Node::Node(size_t blockSize, bool isLeaf)
+Node::Node(unsigned int blockSize, bool isLeaf)
 {
-    size_t nodeCapacity = blockSize - sizeof(bool) - 2 * sizeof(int) - sizeof(Node*) - sizeof(size_t);
+    unsigned int nodeCapacity = blockSize - sizeof(bool) - 2 * sizeof(int) - sizeof(Node*) - sizeof(size_t);
     Node::maxNumOfKeys = getMaxKeys(nodeCapacity);
     this->curNumOfKeys = 0;
     this->isLeaf = isLeaf;
+    this->blockSize = blockSize;
     keys = (int*) malloc(maxNumOfKeys * sizeof(int));
 
     //Intialize pointers for leaf nodes
@@ -40,7 +41,7 @@ Node::Node(size_t blockSize, bool isLeaf)
 
 }
 
-int Node::getMaxKeys(size_t nodeCapacity)
+int Node::getMaxKeys(unsigned int nodeCapacity)
 {
     /*
         Calculate the maximum number of keys that a node can hold.
@@ -49,7 +50,7 @@ int Node::getMaxKeys(size_t nodeCapacity)
 
     if (isLeaf)
     {
-        size_t sum = sizeof(LLNode*);
+        unsigned int sum = sizeof(LLNode*);
         if (sum + sizeof(LLNode*) + sizeof(int) > nodeCapacity) {
         throw std::overflow_error("Error: Keys and pointers cannot be put into a node!");
         }
@@ -80,25 +81,47 @@ int Node::getMaxKeyNum()
     return maxNumOfKeys;
 }
 
+void Node::printNode() {
+    for (int i = 0; i < maxNumOfKeys; i++)
+    {
+        printf("\n");
+        printf("%d ",keys[i]);
+        cout<<ptrs.nodePointers[i];
+        printf("\n");
+    }
+    cout<<ptrs.nodePointers[maxNumOfKeys]<<endl;
+}
+
 void Node::insertNonLeafKey(int key, Node *newNodeAddress) {
     /*
         Insert new key and pointer into a non-leaf node.
     */
-    for (int i = 0; i < maxNumOfKeys; i++)
+   if (curNumOfKeys == 0)
+    {
+        keys[0] = key;
+        ptrs.nodePointers[1] = newNodeAddress;
+        curNumOfKeys ++;
+
+        return;
+    }
+
+    for (int i = 0; i < curNumOfKeys; i++)
         {
-            if (keys[i] > key and i < maxNumOfKeys - 1)
+            if (keys[i] > key)
             {
                 doShift(i);
                 keys[i] = key;
                 ptrs.nodePointers[i + 1] = newNodeAddress;
+
                 curNumOfKeys ++;
                 break;
             }
 
-            if (i == maxNumOfKeys - 1)
+            if (i == curNumOfKeys - 1)
             {
-                keys[i] = key;
-                ptrs.nodePointers[i+1] = newNodeAddress;
+                keys[curNumOfKeys] = key;
+                ptrs.nodePointers[curNumOfKeys + 1] = newNodeAddress;
+
                 curNumOfKeys ++;
                 break;
             }
@@ -107,11 +130,22 @@ void Node::insertNonLeafKey(int key, Node *newNodeAddress) {
 
 int Node::insertLeafKey(int key, Record* recordAddress) {
     int flag = 0;
-    for(int i = 0; i < maxNumOfKeys; i++){
-        if (keys[i] > key and i < maxNumOfKeys - 1 )
+    if (curNumOfKeys == 0)
+    {
+        keys[0] = key;
+        LLNode * newLLNode = new LLNode(blockSize);
+        newLLNode->insert(recordAddress);
+        ptrs.dataPointers[0] = newLLNode;
+        curNumOfKeys ++;
+
+        return 1;
+    }
+    
+    for(int i = 0; i < curNumOfKeys; i++){
+        if (keys[i] > key)
         {
             if (i == 0)
-            {
+            { 
                 flag = 1;
             }
             
@@ -121,6 +155,7 @@ int Node::insertLeafKey(int key, Record* recordAddress) {
             newLLNode->insert(recordAddress);
             ptrs.dataPointers[i] = newLLNode;
             curNumOfKeys ++;
+            
             break;
         }
 
@@ -128,9 +163,22 @@ int Node::insertLeafKey(int key, Record* recordAddress) {
         {
             LLNode *headNode = ptrs.dataPointers[i];
             headNode->insert(recordAddress);
+
             break;
         }
+        else if (i == curNumOfKeys - 1)
+        {
+            keys[curNumOfKeys] = key;     
+            LLNode * newLLNode = new LLNode(blockSize);
+            newLLNode->insert(recordAddress);
+            ptrs.dataPointers[curNumOfKeys] = newLLNode;
+            curNumOfKeys ++;
+   
+            break;
+
+        }
     }
+
     return flag;
 }
 
@@ -138,20 +186,29 @@ void Node::doShift(int start) {
     /*
     Shift both keys and pointers
     */
+   if (start == maxNumOfKeys - 1)
+   {
+    return;
+   }
+   
    if (isLeaf)
    {
-        for(int j = curNumOfKeys - 1; j > start; j--){
-            keys[j] = keys[j-1];
-            ptrs.dataPointers[j + 1] = ptrs.dataPointers[j];
+        for(int j = curNumOfKeys; j > start; j--){
+            keys[j] = keys[j - 1];
+            ptrs.dataPointers[j] = ptrs.dataPointers[j - 1];
         }
    
    }
    else
    {
-        for(int j = curNumOfKeys - 1; j > start; j--){
-        keys[j] = keys[j-1];
-        ptrs.nodePointers[j] = ptrs.nodePointers[j-1];
+        for(int j = curNumOfKeys; j > start; j--){
+            keys[j] = keys[j-1];
         }
+        for (int i = curNumOfKeys + 1; i > start + 1; i--)
+        {
+            ptrs.nodePointers[i] = ptrs.nodePointers[i-1];
+        }
+        
    }
 }
 
@@ -168,10 +225,10 @@ void Node::updateKey(int preKey, int curKey) {
     cout << "Key is not found." << endl;
 }
 
-LLNode::LLNode(size_t blockSize) 
+LLNode::LLNode(unsigned int blockSize) 
 {
-    size_t nodeCapacity = blockSize - sizeof(bool) - 2 * sizeof(int) - sizeof(size_t);
-    recordAddresses = (Record**) malloc(maxNumAddress * sizeof(Record*));
+    unsigned int nodeCapacity = blockSize - sizeof(bool) - 2 * sizeof(int) - sizeof(size_t);
+    this->recordAddresses = {};
     this->nextNode = nullptr;
     this->blockSize = blockSize;
     this->curNumAddress = 0;
@@ -182,29 +239,31 @@ LLNode::LLNode(size_t blockSize)
 void LLNode::insert(Record *newAddress)
 {
     LLNode *curNode = this;
-    while (nextNode != nullptr)
+    while (curNode->nextNode != nullptr)
     {
-        curNode = nextNode;
+        curNode = curNode->nextNode;
     }
 
     //Create new LLNode
-    if (curNumAddress == maxNumAddress)
+    if (curNode->curNumAddress == curNode->maxNumAddress)
     {
         LLNode *newLLNode = new LLNode(blockSize);
-        newLLNode->insert(newAddress);
-        nextNode = newLLNode;
+        newLLNode->recordAddresses.push_back(newAddress);
+        newLLNode->curNumAddress += 1;
+        curNode->nextNode = newLLNode;
     }
     
     else
     {
-        recordAddresses[curNumAddress] = newAddress;
-        curNumAddress += 1;
+        curNode->recordAddresses.push_back(newAddress);
+        curNode->curNumAddress += 1;
     }
+    //cout<<"Insert successfully\n";
 }
 
-int LLNode::getMaxNumAddress(size_t nodeCapacity) {
+int LLNode::getMaxNumAddress(unsigned int nodeCapacity) {
     int maxNum = 0;
-    size_t sum = sizeof(LLNode*);
+    unsigned int sum = sizeof(LLNode*);
     if (sum > nodeCapacity) {
         throw std::overflow_error("Error: Address cannot be put into a node!");
     }
@@ -213,4 +272,5 @@ int LLNode::getMaxNumAddress(size_t nodeCapacity) {
         maxNum ++;
         sum += sizeof(Record*);
     }  
+    return maxNum;
 }

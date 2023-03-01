@@ -34,6 +34,9 @@ public:
     Record retrieve_record(char* addr);
     char* record_addr_to_blk_addr(char* raddr);
     vector<Record> retrieve_blk(char* blk_addr);
+
+    char** getAllBlocks();
+    
     void clear_storage();
 
     int get_storage_size();

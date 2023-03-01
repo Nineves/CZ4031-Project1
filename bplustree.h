@@ -18,14 +18,26 @@ private:
     Node *root;                                     //Root node in memory (if loaded)
     
     int maxNumOfKeys, numOfNodes, numOfLevels;
-    size_t blockSize;
+    unsigned int blockSize;
 
 
 public:
 
-    BPTree(size_t nodeSize);
+    BPTree(unsigned int nodeSize);
 
-    void insert(int key, Record *recordAddress);
+    int getN() {
+        return maxNumOfKeys;
+    }
+
+    int getNumOfLevels() {
+        return numOfLevels;
+    }
+
+    int getNumOfNodes() {
+        return numOfNodes;
+    }
+
+    void insert(int key, Record* recordAddress);
 
     void remove(int key);
 
@@ -37,13 +49,17 @@ public:
 
     void searchRange(int lowerBound, int higherBound);
 
-    Node* getRoot();
+    Node* getRoot() {
+        return root;
+    };
 
     void displayNode(Node* curNode);
 
     void updateParents(int newKey, Node *parentAddr, Node *childAddr);
 
-    void createNewRoot(Node *node1, Node *node2)
+    void createNewRoot(Node *node1, Node *node2);
+
+    void printNode(Node* treenode);
  
 };
 

@@ -2,6 +2,7 @@
 #define CONSTANTS_H_
 // Common
 const int BLOCK_SIZE = 200;
+const int MAX_ADDR_LEN = 64;
 
 // Record
 const int RECORD_SIZE = 10;

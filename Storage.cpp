@@ -33,6 +33,16 @@ Storage::Storage(unsigned int storage_size, unsigned int blk_size){
     this->storage_ptr = operator new(storage_size);
 }
 
+char** Storage::getAllBlocks() {
+    char** blckAddr = (char**)malloc(allocated_nof_blk * sizeof(char* ));
+    for (int i = 0; i < allocated_nof_blk; i++)
+    {
+        blckAddr[i] = (char*)(storage_ptr + i * blk_size);
+    }
+
+    return blckAddr;
+
+}
 /*
 First check whether there is enough space to allocate a new block.
 */

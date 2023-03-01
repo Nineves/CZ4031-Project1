@@ -2,8 +2,12 @@
 #include <cmath>
 #include <iostream>
 #include "Storage.h"
+#include "bplustree.h"
+#include "bplustree.cpp"
 #include "Storage.cpp"
 #include "Calculation.cpp"
+#include "node.h"
+#include "node.cpp"
 #include <cstdlib>
 #include <fstream> //ifstream
 #include <sstream>  // stringstream
@@ -19,13 +23,16 @@ using std::cout;
 
 void store_records(Storage* storage);
 void RunExperiment1(Storage *storage);
+BPTree* RunExperiment2(Storage *storage);
+void buildBPTree(Storage *storage, BPTree *bPlusTree);
+void reportBPTreeStatistics(BPTree* bPlusTree);
 
 /*
-bplustree* RunExperiment2(Storage *storage);
+
 void RunExperiment3(Storage* storage, bplustree *bPlusTree);
 void RunExperiment4(Storage* storage, bplustree *bPlusTree);
 void RunExperiment5(Storage *storage, bplustree *bPlusTree, int key);
-void build_BPlus_tree(Storage *storage, bplustree *bPlusTree);
+
 void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content);
 void delete_records(Storage *storage, bplustree *bPlusTree, int key);
 void delete_key_in_index(bplustree *bPlusTree, int key);
@@ -47,7 +54,7 @@ Calculation cals;
 int blockSize;
 int storage_size;
 Storage *storage;
-//bplustree *bPlusTree;
+BPTree *bPlusTree;
 
 int main()
 {
@@ -61,6 +68,7 @@ int main()
     cout << "Allocation complete. Disk storage of size " << ((storage_size + reservation) / (double)1000000) << "MB is now allocated.\n";
     cout << "Allocated storage is now empty, please run experiment 1 to load data.\n"<<endl;
     char sel = 'n';
+
     while (sel != '6')
     {
         cout << "Please select one of the options below. (1, 2, 3, 4, 5, or 6)\n";
@@ -89,7 +97,7 @@ int main()
             case '2':
             {
                 cout << "Running experiment 2...\n";
-                //bPlusTree = RunExperiment2(storage);
+                bPlusTree = RunExperiment2(storage);
                 cout << "Completed experiment 2...\n"<<endl;
                 break;
             }
@@ -137,6 +145,53 @@ void RunExperiment1(Storage *storage)
     cout << "Loading data...\n";
     store_records(storage);
     cout << "Loading data complete.\n";
+}
+
+BPTree* RunExperiment2(Storage *storage)
+{
+    cout << "Building B+ Tree...\n";
+    BPTree* bPlusTree = new BPTree(storage->get_blk_size());
+    buildBPTree(storage, bPlusTree);
+    reportBPTreeStatistics(bPlusTree);
+    return bPlusTree;
+}
+
+void buildBPTree(Storage *storage, BPTree* bPlusTree)
+{   
+    int count = 0;
+    char** allBlks = storage->getAllBlocks();
+    int n = storage->get_allocated_nof_blk();
+    vector<Record> curRecords;
+
+    for (int i = 0; i < n; i++)
+    {
+        char* curBlock = allBlks[i];
+        curRecords = storage->retrieve_blk(curBlock);
+        int numOfRecords = curRecords.size();
+        int key;
+        for (int j = 0; j < numOfRecords; j++)
+        {
+            key = curRecords[j].getNumOfVotes();           
+            Record record = curRecords[j];
+            // if (count == 1428)
+            // {
+            //     cout<<i<<endl<<j<<endl;
+                
+            // }
+            //printf("============current Key: %d ==============", key);
+            bPlusTree->insert(key, &record);
+            count++;
+            printf("COUNT  %d\n",count);
+        }
+    }
+
+}
+
+void reportBPTreeStatistics(BPTree* bPlusTree)
+{
+    cout<<"Number of Levels: "<<bPlusTree->getNumOfLevels()<<endl;
+    cout<<"Number of Nodes: "<<bPlusTree->getNumOfNodes()<<endl;
+    bPlusTree->printNode(bPlusTree->getRoot());
 }
 
 /*
