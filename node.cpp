@@ -1,5 +1,6 @@
 #include "node.h"
 #include "defined_structures.h"
+#include "constants.h"
 
 #include <iostream>
 
@@ -7,7 +8,7 @@ using namespace std;
 
 Node::Node(unsigned int blockSize, bool isLeaf)
 {
-    unsigned int nodeCapacity = blockSize - sizeof(bool) - 2 * sizeof(int) - sizeof(Node*) - sizeof(size_t);
+    unsigned int nodeCapacity = blockSize - sizeof(bool) - 3 * sizeof(int) - 2 * INDEX_POINTER_SIZE;
     Node::maxNumOfKeys = getMaxKeys(nodeCapacity);
     this->curNumOfKeys = 0;
     this->isLeaf = isLeaf;
@@ -48,31 +49,15 @@ int Node::getMaxKeys(unsigned int nodeCapacity)
     */
     int maxkey = 0;
 
-    if (isLeaf)
-    {
-        unsigned int sum = sizeof(LLNode*);
-        if (sum + sizeof(LLNode*) + sizeof(int) > nodeCapacity) {
+    unsigned int sum = INDEX_POINTER_SIZE;
+    if (sum + INDEX_POINTER_SIZE + INDEX_KEY_SIZE > nodeCapacity) {
         throw std::overflow_error("Error: Keys and pointers cannot be put into a node!");
-        }
-
-        while (sum + sizeof(LLNode*) + sizeof(int) <= nodeCapacity) {
-            maxkey ++;
-            sum += sizeof(LLNode*) + sizeof(int);
-        }  
     }
 
-    else
-    {
-        size_t sum = sizeof(Node*);
-        if (sum + sizeof(Node*) + sizeof(int) > nodeCapacity) {
-        throw std::overflow_error("Error: Keys and pointers cannot be put into a node!");
-        }
-
-        while (sum + sizeof(Node*) + sizeof(int) <= nodeCapacity) {
-            maxkey ++;
-            sum += sizeof(Node*) + sizeof(int);
-        }
-    }
+    while (sum + INDEX_POINTER_SIZE + INDEX_KEY_SIZE <= nodeCapacity) {
+        maxkey ++;
+        sum += INDEX_POINTER_SIZE + INDEX_KEY_SIZE;
+    }  
     return maxkey;
 }
 

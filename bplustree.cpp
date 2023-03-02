@@ -18,13 +18,17 @@ BPTree::BPTree(unsigned int blockSize) {
 }
 
 void BPTree::printNode(Node* treenode){
-    for (int i = 0; i < treenode->maxNumOfKeys; i++)
+    cout<<treenode->ptrs.nodePointers[0]<<"->";
+    for (int i = 0; i < treenode->curNumOfKeys; i++)
     {
-        cout<<treenode->keys[i]<<" ";
-        cout<<treenode->ptrs.nodePointers[i];
-        printf("\n");
+        cout<<"["<<treenode->keys[i]<<"]"<<"->";
+        if (i + 1 == treenode->curNumOfKeys)
+        {
+             cout<<treenode->ptrs.nodePointers[i + 1]<<endl;
+             break;
+        }
+        cout<<treenode->ptrs.nodePointers[i + 1]<<"->";
     }
-    cout<<treenode->ptrs.nodePointers[treenode->maxNumOfKeys];
 }
 
 void BPTree::insert(int key, Record *recordAddress) {

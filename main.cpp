@@ -173,15 +173,9 @@ void buildBPTree(Storage *storage, BPTree* bPlusTree)
         {
             key = curRecords[j].getNumOfVotes();           
             Record record = curRecords[j];
-            // if (count == 1428)
-            // {
-            //     cout<<i<<endl<<j<<endl;
-                
-            // }
-            //printf("============current Key: %d ==============", key);
             bPlusTree->insert(key, &record);
             count++;
-            printf("COUNT  %d\n",count);
+            //printf("COUNT  %d\n",count);
         }
     }
 
@@ -191,6 +185,7 @@ void reportBPTreeStatistics(BPTree* bPlusTree)
 {
     cout<<"Number of Levels: "<<bPlusTree->getNumOfLevels()<<endl;
     cout<<"Number of Nodes: "<<bPlusTree->getNumOfNodes()<<endl;
+    cout<<"Maximum Number of Keys in a Node: "<<bPlusTree->getN()<<endl;
     bPlusTree->printNode(bPlusTree->getRoot());
 }
 
