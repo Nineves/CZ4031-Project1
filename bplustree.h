@@ -14,6 +14,7 @@ class BPTree
 {
 private:
     Storage *memory;
+    Node *leafHead;
     Node *root; // Root node in memory (if loaded)
 
     int maxNumOfKeys, numOfNodes, numOfLevels;
@@ -65,6 +66,11 @@ public:
     void createNewRoot(Node *node1, Node *node2);
 
     void printNode(Node *treenode);
+
+    bool CheckTree();
+
+    bool CheckNode(Node* pNode);
+
 };
 
 #endif

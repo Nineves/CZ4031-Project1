@@ -24,7 +24,9 @@ private:
 
 public:
     LLNode(unsigned int blockSize);
-    ~LLNode();
+    ~LLNode(){
+        
+    };
 
     void insert(Record *newAddress);
     int getMaxNumAddress(unsigned int nodeCapacity);
@@ -38,7 +40,8 @@ private:
     unsigned int blockSize;
     Node *parentAddr;
     Node *nextLeafNode;
-    Node *lastleafNode;
+    Node *lastLeafNode;
+    Node *leafHead;
     int *keys;
 
     union
