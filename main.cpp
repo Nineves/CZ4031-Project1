@@ -27,9 +27,9 @@ void reportBPTreeStatistics(BPTree* bPlusTree);
 
 
 
-void RunExperiment3(Storage* storage, bplustree *bPlusTree);
-void RunExperiment4(Storage* storage, bplustree *bPlusTree);
-void RunExperiment5(Storage *storage, bplustree *bPlusTree, int key);
+void RunExperiment3(Storage* storage, BPTree *bPlusTree);
+void RunExperiment4(Storage* storage, BPTree *bPlusTree);
+void RunExperiment5(Storage *storage, BPTree *bPlusTree, int key);
 
 void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content);
 void delete_records(Storage *storage, bplustree *bPlusTree, int key);
@@ -203,9 +203,7 @@ void RunExperiment3(Storage* storage, BPTree *bPlusTree)
     Node *start_node = bPlusTree->SearchLeafNode(key_to_find);
     int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(key_to_find);
     vector<char *> record_addresses = get_all_record_addr(start_node, numOfNodeAccess, key_to_find);
-
     retrieve_search_statistics_storage(storage, record_addresses);
-
     // retrieve_search_statistics_index(bPlusTree, start_node, key_to_find);
 }
 
