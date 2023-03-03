@@ -32,6 +32,7 @@ void RunExperiment3(Storage* storage, BPTree *bPlusTree);
 void RunExperiment4(Storage* storage, BPTree *bPlusTree);
 void RunExperiment5(Storage *storage, BPTree *bPlusTree, int key);
 
+void bruteForceSearch(Storage *storage, int start, int end = 0);
 void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content);
 void delete_records(Storage *storage, bplustree *bPlusTree, int key);
 void delete_key_in_index(bplustree *bPlusTree, int key);
@@ -214,6 +215,8 @@ void RunExperiment3(Storage* storage, BPTree *bPlusTree)
     auto duration1 = duration_case<microseconds>(time2 - time1);
     auto duration2 = duration_case<microseconds>(time4 - time3);
     cout << "The running time of the retrieval process: " << duration1.count() + duration2.count() << " microseconds" << endl;
+
+    bruteForceSearch(storage, key_to_find);
     // retrieve_search_statistics_index(bPlusTree, start_node, key_to_find);
 }
 
@@ -234,6 +237,8 @@ void RunExperiment4(Storage* storage, BPTree* bPlusTree)
     auto duration1 = duration_case<microseconds>(time2 - time1);
     auto duration2 = duration_case<microseconds>(time4 - time3);
     cout << "The running time of the retrieval process: " << duration1.count() + duration2.count() << " microseconds" << endl;
+
+    bruteForceSearch(storage, start_of_range, end_of_range);
     // code for number and content of index nodes the process accesses
     // retrieve_search_statistics_index(bPlusTree, start_node, start_of_range, end_of_range);
 }
@@ -455,6 +460,43 @@ void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_
     cout << "The number of records found: " << record_count <<endl;
     //cout<< "This is the total sum" << average_rating <<endl;
     cout << "The average of \"averageRating\'s\" of the records that are returned: " << average_rating/record_count <<endl;
+    return;
+}
+
+void bruteForceSearch (Storage *storage, int start, int end) {
+    cout << "========== Brute-froce method ==========" << endl;
+
+    if (end == 0 ) {
+        end = start;
+    }
+
+    auto time1 = high_resolution_clock::now();
+
+    int count = 0;
+    char** allBlks = storage->getAllBlocks();
+    int n = storage->get_allocated_nof_blk();
+    vector<Record> contents_of_block;
+
+    for (int i = 0; i < n; i++)
+    {
+        char* curBlock = allBlks[i];
+        contents_of_block = storage->retrieve_blk(curBlock);
+        int numOfRecords = curRecords.size();
+        int key;
+        for (int j = 0; j < numOfRecords; j++)
+        {
+            key = contents_of_block[j].getNumOfVotes();
+            if ((key >= start) && (key <= end)){
+                count++;
+                cout << "Tconst: " << contents_of_block[j].getTconst() << "; numVotes: " << key << endl;
+            }
+        }
+    }
+    auto time2 = high_resolution_clock::now();
+    auto duration1 = duration_case<microseconds>(time2 - time1);
+
+    cout << "The number of data blocks accessed by brute-force method: " << n << endl; // TODO: just all the blocks right?
+    cout << "The running time of brute-force method: " << duration1 << endl;
     return;
 }
 
