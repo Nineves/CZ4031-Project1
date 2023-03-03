@@ -8,11 +8,12 @@ using namespace std;
 
 Node::Node(unsigned int blockSize, bool isLeaf)
 {
-    unsigned int nodeCapacity = blockSize - sizeof(bool) - 3 * sizeof(int) - 2 * INDEX_POINTER_SIZE;
+    unsigned int nodeCapacity = blockSize - sizeof(bool) - 3 * sizeof(int) - INDEX_POINTER_SIZE;
     Node::maxNumOfKeys = getMaxKeys(nodeCapacity);
     this->curNumOfKeys = 0;
     this->isLeaf = isLeaf;
     this->blockSize = blockSize;
+    this->nextLeafNode = nullptr;
     keys = (int *)malloc(maxNumOfKeys * sizeof(int));
 
     // Intialize pointers for leaf nodes
