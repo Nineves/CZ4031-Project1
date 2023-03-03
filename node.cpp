@@ -15,7 +15,7 @@ Node::Node(unsigned int blockSize, bool isLeaf)
     this->blockSize = blockSize;
     this->nextLeafNode = nullptr;
     this->lastLeafNode = nullptr;
-    
+
     keys = (int *)malloc(maxNumOfKeys * sizeof(int));
 
     // Intialize pointers for leaf nodes
@@ -93,7 +93,7 @@ void Node::insertNonLeafKey(int key, Node *newNodeAddress)
     {
         keys[0] = key;
         ptrs.nodePointers[1] = newNodeAddress;
-        
+
         curNumOfKeys++;
 
         return;
@@ -172,40 +172,6 @@ int Node::insertLeafKey(int key, Record *recordAddress)
     return flag;
 }
 
-void Node::deleteNonLeafKey(int key)
-{
-    if (curNumOfKeys == 0)
-    {
-        keys[0] = key;
-        //ptrs.nodePointers[1] = newNodeAddress;
-        curNumOfKeys++;
-
-        return;
-    }
-
-    for (int i = 0; i < curNumOfKeys; i++)
-    {
-        if (keys[i] > key)
-        {
-            doShift(i);
-            keys[i] = key;
-            //ptrs.nodePointers[i + 1] = newNodeAddress;
-
-            curNumOfKeys++;
-            break;
-        }
-
-        if (i == curNumOfKeys - 1)
-        {
-            keys[curNumOfKeys] = key;
-            //ptrs.nodePointers[curNumOfKeys + 1] = newNodeAddress;
-
-            curNumOfKeys++;
-            break;
-        }
-    }
-}
-
 void Node::deleteLeafKey(int key)
 {
     for (int i = 0; i < curNumOfKeys; i++)
@@ -213,7 +179,7 @@ void Node::deleteLeafKey(int key)
         if (keys[i] == key)
         {
             doReverseShift(i);
-            //keys.pop_back();
+            // keys.pop_back();
             delete ptrs.dataPointers[curNumOfKeys];
             // ptrs.dataPointers[curNumOfKeys] = nullptr;
             curNumOfKeys--;
@@ -276,7 +242,24 @@ void Node::doReverseShift(int start)
     }
 }
 
-
+void Node::updateDeletedParents(int key)
+{
+    while (parentAddr != nullptr)
+    {
+        for (int i = 0; i < curNumOfKeys; i++)
+        {
+            if (parentAddr->keys[i] == key)
+            {
+                parentAddr->keys[i] = keys[0];
+                break;
+            }
+        }
+        parentAddr = parentAddr->parentAddr;
+    }
+}
+void Node::merge()
+{
+}
 LLNode::LLNode(unsigned int blockSize)
 {
     unsigned int nodeCapacity = blockSize - sizeof(bool) - 2 * sizeof(int) - sizeof(size_t);
