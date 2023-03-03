@@ -270,6 +270,9 @@ void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr) {
             numOfNodes ++;
 
             this->root = newRoot;
+            parentAddr->parentAddr = newRoot;
+            childAddr->parentAddr = newRoot;
+
             return;
         }
         else
