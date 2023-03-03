@@ -18,6 +18,7 @@
 #pragma pack(1)
 
 using std::cout;
+using namespace std::chrono;
 
 void store_records(Storage* storage);
 void RunExperiment1(Storage *storage);
@@ -187,7 +188,7 @@ void reportBPTreeStatistics(BPTree* bPlusTree)
     bPlusTree->printNode(bPlusTree->getRoot());
 }
 
-
+/*
 bplustree* RunExperiment2(Storage *storage)
 {
     bplustree* bPlusTree = new bplustree(cals.GetMaxNumOfKeysPerIndexBlock(storage->get_blk_size()));
@@ -195,15 +196,24 @@ bplustree* RunExperiment2(Storage *storage)
     report_bPlusTree_statistics(bPlusTree, storage->get_blk_size(), true, true, true, true);
     return bPlusTree;
 }
+*/
 
-// need to incorporate the Linked list and B+tree portion into the wrapper function if it is to be inside it.
 void RunExperiment3(Storage* storage, BPTree *bPlusTree)
 {
     int key_to_find = 500;
+    auto time1 = high_resolution_clock::now();
     Node *start_node = bPlusTree->SearchLeafNode(key_to_find);
+    auto time2 = high_resolution_clock::now();
     int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(key_to_find);
+    auto time3 = high_resolution_clock::now();
     vector<char *> record_addresses = get_all_record_addr(start_node, numOfNodeAccess, key_to_find);
+    auto time4 = high_resolution_clock::now();
+
     retrieve_search_statistics_storage(storage, record_addresses);
+
+    auto duration1 = duration_case<microseconds>(time2 - time1);
+    auto duration2 = duration_case<microseconds>(time4 - time3);
+    cout << "The running time of the retrieval process: " << duration1.count() + duration2.count() << " microseconds" << endl;
     // retrieve_search_statistics_index(bPlusTree, start_node, key_to_find);
 }
 
@@ -211,10 +221,19 @@ void RunExperiment4(Storage* storage, BPTree* bPlusTree)
 {
     int start_of_range = 30000;
     int end_of_range = 40000;
+    auto time1 = high_resolution_clock::now();
     Node *start_node = bPlusTree->SearchLeafNode(start_of_range);
+    auto time2 = high_resolution_clock::now();
     int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(start_of_range);
+    auto time3 = high_resolution_clock::now();
     vector<char *> record_addresses = get_all_record_addr(start_node, numOfNodeAccess, start_of_range, end_of_range);
+    auto time4 = high_resolution_clock::now();
+
     retrieve_search_statistics_storage(storage, record_addresses);
+
+    auto duration1 = duration_case<microseconds>(time2 - time1);
+    auto duration2 = duration_case<microseconds>(time4 - time3);
+    cout << "The running time of the retrieval process: " << duration1.count() + duration2.count() << " microseconds" << endl;
     // code for number and content of index nodes the process accesses
     // retrieve_search_statistics_index(bPlusTree, start_node, start_of_range, end_of_range);
 }

@@ -265,7 +265,6 @@ Node* BPTree::searchLeafNode(int key) {
     }
     else {
         Node *curNode = root;
-        int numOfAccessNodes = 1;
         while(!curNode->isLeaf){
             for(int i = 0; i < curNode->curNumOfKeys; i++){
                 if (curNode->keys[i] > key) {
@@ -275,12 +274,10 @@ Node* BPTree::searchLeafNode(int key) {
                 }
                 if (i == curNode -> curNumOfKeys - 1) { 
                     curNode = curNode->ptrs.nodePointers[i + 1];
-                    numOfAccessNodes++;
                     break;
                 }
             }
         }
-        cout << "Number of nodes accessed in searching process: " << numOfAccessNodes << endl;
         for(int i = 0; i < curNode->curNumOfKeys; i++){
             if(curNode->keys[i] == key){
                 cout << "We found the key!\n";
@@ -313,6 +310,7 @@ int BPTree::getNumOfNodeSearch(int key) {
                 }
             }
         }
+        cout << "Number of nodes accessed in searching process: " << numOfAccessNodes << endl;
         return numOfAccessNodes;
     }
     return 0;
