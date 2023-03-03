@@ -15,11 +15,10 @@
 #include <iomanip>  // ws
 #include <map>      // map
 #include <string>
-//#include "bplustree.h"
-//#include "bplustree.cpp"
 #pragma pack(1)
 
 using std::cout;
+using namespace std::chrono;
 
 void store_records(Storage* storage);
 void RunExperiment1(Storage *storage);
@@ -27,25 +26,25 @@ BPTree* RunExperiment2(Storage *storage);
 void buildBPTree(Storage *storage, BPTree *bPlusTree);
 void reportBPTreeStatistics(BPTree* bPlusTree);
 
-/*
 
-void RunExperiment3(Storage* storage, bplustree *bPlusTree);
-void RunExperiment4(Storage* storage, bplustree *bPlusTree);
-void RunExperiment5(Storage *storage, bplustree *bPlusTree, int key);
+
+void RunExperiment3(Storage* storage, BPTree *bPlusTree);
+void RunExperiment4(Storage* storage, BPTree *bPlusTree);
+void RunExperiment5(Storage *storage, BPTree *bPlusTree, int key);
 
 void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content);
 void delete_records(Storage *storage, bplustree *bPlusTree, int key);
 void delete_key_in_index(bplustree *bPlusTree, int key);
 void delete_records_in_db(Storage *storage, vector<char *> record_addresses);
-vector<char *> get_all_record_addr(CLeafNode *start_node, int start, int end = 0);
-*/
+vector<char *> get_all_record_addr(Node *start_node, int numOfNodeAccess, int start, int end = 0);
+
 
 void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_results_addresses);
 
-/*
-void retrieve_search_statistics_index(bplustree *bPlusTree, CLeafNode *start_node, int start, int end = 0);
-vector<CLeafNode *> get_nodes_accessed_at_leaf_level(CLeafNode *start_node, int start, int end);
-*/
+
+// void retrieve_search_statistics_index(bplustree *bPlusTree, Node *start_node, int start, int end = 0);
+// vector<Node *> get_nodes_accessed_at_leaf_level(Node *start_node, int start, int end);
+
 
 
 
@@ -197,38 +196,55 @@ bplustree* RunExperiment2(Storage *storage)
     report_bPlusTree_statistics(bPlusTree, storage->get_blk_size(), true, true, true, true);
     return bPlusTree;
 }
+*/
 
-// need to incorporate the Linked list and B+tree portion into the wrapper function if it is to be inside it.
-void RunExperiment3(Storage* storage, bplustree *bPlusTree)
+void RunExperiment3(Storage* storage, BPTree *bPlusTree)
 {
     int key_to_find = 500;
-    CLeafNode *start_node = bPlusTree->SearchLeafNode(key_to_find);
-    vector<char *> record_addresses = get_all_record_addr(start_node, key_to_find);
+    auto time1 = high_resolution_clock::now();
+    Node *start_node = bPlusTree->SearchLeafNode(key_to_find);
+    auto time2 = high_resolution_clock::now();
+    int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(key_to_find);
+    auto time3 = high_resolution_clock::now();
+    vector<char *> record_addresses = get_all_record_addr(start_node, numOfNodeAccess, key_to_find);
+    auto time4 = high_resolution_clock::now();
 
     retrieve_search_statistics_storage(storage, record_addresses);
-    retrieve_search_statistics_index(bPlusTree, start_node, key_to_find);
+
+    auto duration1 = duration_case<microseconds>(time2 - time1);
+    auto duration2 = duration_case<microseconds>(time4 - time3);
+    cout << "The running time of the retrieval process: " << duration1.count() + duration2.count() << " microseconds" << endl;
+    // retrieve_search_statistics_index(bPlusTree, start_node, key_to_find);
 }
 
-void RunExperiment4(Storage* storage, bplustree* bPlusTree)
+void RunExperiment4(Storage* storage, BPTree* bPlusTree)
 {
     int start_of_range = 30000;
     int end_of_range = 40000;
-    CLeafNode *start_node = bPlusTree->SearchLeafNode(start_of_range);
-    vector<char *> record_addresses = get_all_record_addr(start_node, start_of_range, end_of_range);
+    auto time1 = high_resolution_clock::now();
+    Node *start_node = bPlusTree->SearchLeafNode(start_of_range);
+    auto time2 = high_resolution_clock::now();
+    int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(start_of_range);
+    auto time3 = high_resolution_clock::now();
+    vector<char *> record_addresses = get_all_record_addr(start_node, numOfNodeAccess, start_of_range, end_of_range);
+    auto time4 = high_resolution_clock::now();
+
     retrieve_search_statistics_storage(storage, record_addresses);
+
+    auto duration1 = duration_case<microseconds>(time2 - time1);
+    auto duration2 = duration_case<microseconds>(time4 - time3);
+    cout << "The running time of the retrieval process: " << duration1.count() + duration2.count() << " microseconds" << endl;
     // code for number and content of index nodes the process accesses
-    retrieve_search_statistics_index(bPlusTree, start_node, start_of_range, end_of_range);
+    // retrieve_search_statistics_index(bPlusTree, start_node, start_of_range, end_of_range);
 }
 
-void RunExperiment5(Storage *storage, bplustree *bPlusTree, int key)
+void RunExperiment5(Storage *storage, BPTree *bPlusTree, int key)
 {
     delete_records(storage, bPlusTree, key);
     report_bPlusTree_statistics(bPlusTree, storage->get_blk_size(), false, true, true, true);
     cout << "Number of times that a node is deleted = " << num_nodes_deleted << "\n"
     << "Note: it does not include the number of Parrays deleted (level between leaf nodes and records)"<<endl;
 }
-
-*/
 
 
 // experiment 1 helper code
@@ -284,10 +300,8 @@ void store_records(Storage *storage)
     return;
 }
 
-/*
 
-
-void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content)
+void report_bPlusTree_statistics(BPTree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content)
 {
     Calculation cals = Calculations();
     if (parameter_n)
@@ -338,12 +352,14 @@ void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool para
 }
 
 // experiment 3 and 4
-vector<char *> get_all_record_addr(CLeafNode *start_node, int start, int end)
+vector<char *> get_all_record_addr(Node *start_node, int numOfNodeAccess, int start, int end)
 {
 
     if (start_node == nullptr){
         cout << "This shouldnt happen";
     }
+    int numOfNodeAccessed = numOfNodeAccess;
+
     vector<char*> record_addr = {};
     vector<Parray*> parrays = {};
 
@@ -352,15 +368,15 @@ vector<char *> get_all_record_addr(CLeafNode *start_node, int start, int end)
     }
 
     int curr_key = start;
-    CLeafNode *curr_node = start_node;
+    Node *curr_node = start_node;
     bool flag_for_while = true;
     do{
         int i = 1;
         for (i = 1; (i <= curr_node->GetCount()); i++)
         {
-            int curr_key_in_node = curr_node->GetElement(i);
+            int curr_key_in_node = curr_node->keys[i];
             if (curr_key_in_node >= start && curr_key_in_node <= end){
-                parrays.push_back(curr_node->GetPointer1(i));
+                parrays.push_back(curr_node->ptrs.dataPointers[i]); //TODO: nodePointer or dataPointer?
             }
             if (curr_key_in_node > end)
             {
@@ -369,11 +385,14 @@ vector<char *> get_all_record_addr(CLeafNode *start_node, int start, int end)
             }
         }
         // cout << "size of parrays " << parrays.size() << "\n";
-        curr_node = curr_node->m_pNextNode;
+        curr_node = curr_node->nextLeafNode;
         if (curr_node == nullptr){
             break;
+        } else {
+            numOfNodeAccessed++;
         }
     } while (flag_for_while);
+
     //copy to recordaddr
     for (int i = 0; i < parrays.size(); i++){
 
@@ -385,8 +404,10 @@ vector<char *> get_all_record_addr(CLeafNode *start_node, int start, int end)
         }
     }
     // cout << "number of record address:" << record_addr.size() << "\n";
+    cout << "The number of index nodes the process accesses: " << numOfNodeAccessed << endl;
     return record_addr;
 }
+
 void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_results_addresses)
 {
     int block_count = 0;
@@ -400,9 +421,9 @@ void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_
         if (current_block_address == prev_block_address)
         {
             //retrieve the avg rating of the individual record
-                Record temp_record = storage->retrieve_record(search_results_addresses[index]);
-                average_rating += temp_record.rating2Dec();
-                record_count += 1;
+            Record temp_record = storage->retrieve_record(search_results_addresses[index]);
+            average_rating += temp_record.rating2Dec();
+            record_count += 1;
         }
         else{
             if(block_count<5)
@@ -418,6 +439,7 @@ void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_
                  }
                 cout <<endl;
             }
+            //retrieve the avg rating of the individual record
             Record temp_record = storage->retrieve_record(search_results_addresses[index]);
             average_rating += temp_record.rating2Dec();
             // increment record count no matter what, but block count only if its not consecutively the same
@@ -426,23 +448,24 @@ void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_
         }
         //change the prev to current for next loop
         prev_block_address = current_block_address;
-         index++;
+        index++;
     }
-    cout<< "Number of unique blocks accessed is " << block_count<< endl;
+    cout << "The number of data blocks the process accesses: " << block_count<< endl;
     //the contents of first 5 printed out beforehand in the if portion
-    cout<< "Number of records found is " << record_count <<endl;
+    cout << "The number of records found: " << record_count <<endl;
     //cout<< "This is the total sum" << average_rating <<endl;
-    cout << "Average rating of all the records accessed is " << average_rating/record_count <<endl;
-
+    cout << "The average of \"averageRating\'s\" of the records that are returned: " << average_rating/record_count <<endl;
     return;
 }
-void retrieve_search_statistics_index(bplustree* bPlusTree, CLeafNode* start_node, int start, int end){
+
+/*
+void retrieve_search_statistics_index(bplustree* bPlusTree, Node* start_node, int start, int end){
     if (end == 0)
     {
         end = start;
     }
     vector<CNode *> nodes_accessed_to_find_start = bPlusTree->AncestoryOfLeafNode(start);
-    vector<CLeafNode*> leaf_nodes_accessed_after_finding_start = get_nodes_accessed_at_leaf_level(start_node, start, end);
+    vector<Node*> leaf_nodes_accessed_after_finding_start = get_nodes_accessed_at_leaf_level(start_node, start, end);
 
     int total_index_blocks_accessed = nodes_accessed_to_find_start.size() + leaf_nodes_accessed_after_finding_start.size();
     cout << "total_index_blocks_accessed = " << total_index_blocks_accessed << "\n";
@@ -485,13 +508,13 @@ void retrieve_search_statistics_index(bplustree* bPlusTree, CLeafNode* start_nod
         printcount++;
     }
 }
-vector<CLeafNode*> get_nodes_accessed_at_leaf_level(CLeafNode* start_node, int start, int end){
-    vector<CLeafNode *> nodes_accessed = {}; // excepted start_node
+vector<Node*> get_nodes_accessed_at_leaf_level(Node* start_node, int start, int end){
+    vector<Node *> nodes_accessed = {}; // excepted start_node
     if (start == end) {
         return nodes_accessed;
     }
     int curr_key = start;
-    CLeafNode *curr_node = start_node;
+    Node *curr_node = start_node;
     bool flag_for_while = true;
     do
     {
@@ -519,6 +542,7 @@ vector<CLeafNode*> get_nodes_accessed_at_leaf_level(CLeafNode* start_node, int s
     } while (flag_for_while);
     return nodes_accessed;
 }
+*/
 
 // experiment 5
 void delete_records_in_db(Storage *storage, vector<char *> record_addresses)
@@ -545,7 +569,7 @@ void delete_key_in_index(bplustree *bPlusTree, int key)
 
 void delete_records(Storage *storage, bplustree *bPlusTree, int key)
 {
-    CLeafNode *start_node = bPlusTree->SearchLeafNode(key);
+    Node *start_node = bPlusTree->SearchLeafNode(key);
     vector<char *> record_addresses = get_all_record_addr(start_node, key);
     cout << "Found all records with numVotes = " << key << "\n";
     delete_records_in_db(storage, record_addresses); // this one can return a tuple detailing the number of times a node is deleted
@@ -553,6 +577,3 @@ void delete_records(Storage *storage, bplustree *bPlusTree, int key)
     delete_key_in_index(bPlusTree, key);
     cout << "Finished deleting records from storage and updating B+ tree\n";
 }
-
-
-*/

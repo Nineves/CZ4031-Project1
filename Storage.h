@@ -25,6 +25,8 @@ public:
     Storage(unsigned int storage_size, unsigned int blk_size);
     Storage* addr_of_object(void) { return this; }
     pair<int, char*> get_available_ptr(int store_size);
+    char* record_addr_to_blk_addr(char* raddr);
+    vector<Record> retrieve_blk(char* blk_addr);
     bool allocate_block();
     void release_blk();
     unsigned int get_blk_id(char* addr);
@@ -32,13 +34,8 @@ public:
     void delete_item(char* addr, int size_to_delete);
     void update_item(char* addr, int size_to_update, void* new_item);
     Record retrieve_record(char* addr);
-    char* record_addr_to_blk_addr(char* raddr);
-    vector<Record> retrieve_blk(char* blk_addr);
-
     char** getAllBlocks();
-    
     void clear_storage();
-
     int get_storage_size();
     int get_blk_size();
     int get_allocated_nof_blk();
@@ -46,4 +43,4 @@ public:
     void* get_storage_ptr();
 };
 
-#endif // STORAGE_H_INCLUDED
+#endif

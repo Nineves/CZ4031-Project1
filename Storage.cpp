@@ -43,6 +43,38 @@ char** Storage::getAllBlocks() {
     return blckAddr;
 
 }
+
+void Storage::clear_storage() {
+    free(storage_ptr);
+    allocated_nof_blk = 0;
+    allocated_size = 0;
+    cur_blk_id = -1;
+    deleted_slots = {};
+    free(blks);
+
+    return;
+}
+
+int Storage::get_storage_size() {
+    return storage_size;
+}
+
+int Storage::get_blk_size() {
+    return blk_size;
+}
+
+int Storage::get_allocated_nof_blk() {
+    return allocated_nof_blk;
+}
+
+int Storage::get_allocated_size() {
+    return allocated_size;
+}
+
+void* Storage::get_storage_ptr() {
+    return storage_ptr;
+}
+
 /*
 First check whether there is enough space to allocate a new block.
 */
@@ -84,9 +116,22 @@ unsigned int Storage::get_blk_id(char* addr) {
     return (addr - (char*)storage_ptr) / blk_size;
 }
 
-/*
-Insert a record to the storage memory.
-*/
+void Storage::update_item(char* addr, int size_to_update, void* new_item) {
+    memcpy(addr, (char*)new_item, size_to_update);
+}
+
+
+Record Storage::retrieve_record(char* addr) {
+    char* blk_addr = record_addr_to_blk_addr(addr);
+    vector<Record> records = retrieve_blk(blk_addr);
+    int index = (addr - blk_addr) / RECORD_SIZE;
+    return records.at(index);
+}
+
+char* Storage::record_addr_to_blk_addr(char* raddr) {
+    unsigned int blk_id = get_blk_id(raddr);
+    return (char*)storage_ptr + blk_id * blk_size;
+}
 
 char* Storage::insert_item(void* item_addr, int item_size) {
     if (item_size > blk_size) {
@@ -118,26 +163,8 @@ void Storage::delete_item(char* addr, int size_to_delete) {
     }
     allocated_size -= size_to_delete;
     deleted_slots.push_back(make_pair(addr, size_to_delete));
-    //cout << "Record at block " << target_blk_id << " has been successfully deleted." <<endl;
-    //cout << "Block "<< target_blk_id << " now has " << blks[target_blk_id].get_space_used() << " bytes used."<<endl;
 }
 
-void Storage::update_item(char* addr, int size_to_update, void* new_item) {
-    memcpy(addr, (char*)new_item, size_to_update);
-}
-
-
-Record Storage::retrieve_record(char* addr) {
-    char* blk_addr = record_addr_to_blk_addr(addr);
-    vector<Record> records = retrieve_blk(blk_addr);
-    int index = (addr - blk_addr) / RECORD_SIZE;
-    return records.at(index);
-}
-
-char* Storage::record_addr_to_blk_addr(char* raddr) {
-    unsigned int blk_id = get_blk_id(raddr);
-    return (char*)storage_ptr + blk_id * blk_size;
-}
 
 vector<Record> Storage::retrieve_blk(char* blk_addr) {
     unsigned int space_accessed = 0;
@@ -155,35 +182,4 @@ vector<Record> Storage::retrieve_blk(char* blk_addr) {
         space_accessed += RECORD_SIZE;
     }
     return res;
-}
-
-void Storage::clear_storage() {
-    free(storage_ptr);
-    allocated_nof_blk = 0;
-    allocated_size = 0;
-    cur_blk_id = -1;
-    deleted_slots = {};
-    free(blks);
-
-    return;
-}
-
-int Storage::get_storage_size() {
-    return storage_size;
-}
-
-int Storage::get_blk_size() {
-    return blk_size;
-}
-
-int Storage::get_allocated_nof_blk() {
-    return allocated_nof_blk;
-}
-
-int Storage::get_allocated_size() {
-    return allocated_size;
-}
-
-void* Storage::get_storage_ptr() {
-    return storage_ptr;
 }
