@@ -1,13 +1,13 @@
 #include "Record.h"
 
-Record::Record(int name, int16_t avgrating, int numofvotes)
+Record::Record(int tconst, int16_t avgrating, int numofvotes)
 {
-    SetRecord(name, avgrating, numofvotes);
+    SetRecord(tconst, avgrating, numofvotes);
 }
 
-void Record::SetRecord(int name,int16_t avgrating,int numofvotes)
+void Record::SetRecord(int tconst,int16_t avgrating,int numofvotes)
 {
-    R_name = name;
+    R_tconst = tconst;
     R_avgrating = avgrating;
     R_numofvotes = numofvotes;
 }

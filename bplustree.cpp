@@ -108,6 +108,7 @@ void BPTree::insert(int key, Record *recordAddress)
             }
 
             curNode->nextLeafNode = splitLeafNode;
+            splitLeafNode->lastLeafNode = curNode;
 
             if (numOfLevels == 1) // CurNode is both leaf node and root node
             {
@@ -137,6 +138,7 @@ void BPTree::remove(int key)
     {
         int flag;
         curNode->deleteLeafKey(key, parentNode);
+        // upDate parents
         upDateDeletedParents(key, parentNode, curNode);
     }
     else
@@ -153,6 +155,7 @@ void BPTree::remove(int key)
         }
         else
         {
+            // merge with left
         }
     }
 }
