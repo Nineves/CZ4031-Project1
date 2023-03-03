@@ -13,6 +13,7 @@ Node::Node(unsigned int blockSize, bool isLeaf)
     this->curNumOfKeys = 0;
     this->isLeaf = isLeaf;
     this->blockSize = blockSize;
+    this->nextLeafNode = nullptr;
     keys = (int*) malloc(maxNumOfKeys * sizeof(int));
 
     //Intialize pointers for leaf nodes
