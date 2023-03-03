@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "defined_structures.h"
-#include "Record.h" 
+#include "Record.h"
 
 using namespace std;
 
@@ -15,10 +15,10 @@ private:
     int maxNumAddress;
     int curNumAddress;
     unsigned int blockSize;
-    
-    vector<Record*> recordAddresses;
-    LLNode* nextNode;
-    LLNode* nodePointer;
+
+    vector<Record *> recordAddresses;
+    LLNode *nextNode;
+    LLNode *nodePointer;
 
     friend class BPTree;
 
@@ -28,7 +28,6 @@ public:
 
     void insert(Record *newAddress);
     int getMaxNumAddress(unsigned int nodeCapacity);
-    
 };
 
 class Node
@@ -39,41 +38,35 @@ private:
     unsigned int blockSize;
     Node *parentAddr;
     Node *nextLeafNode;
-    int* keys;
+    Node *lastleafNode;
+    int *keys;
 
-    union {
-        Node ** nodePointers;
-        LLNode ** dataPointers;
-    }ptrs;
+    union
+    {
+        Node **nodePointers;
+        LLNode **dataPointers;
+    } ptrs;
 
     bool isLeaf;
 
-    friend class BPTree; 
+    friend class BPTree;
 
 public:
     int getMaxKeys(unsigned int nodeCapacity);
     void insertNonLeafKey(int key, Node *newNodeAddress);
-    int insertLeafKey(int key, Record* recordAddress);
+    int insertLeafKey(int key, Record *recordAddress);
+    void deleteNonLeafKey(int key) void deleteLeafKey(int key);
     void doShift(int start);
+    void doReverseShift(int start);
     void updateKey(int preKey, int curKey);
     Node(unsigned int blockSize, bool isLeaf);
     ~Node();
     int getMaxKeyNum();
     void printNode();
-    
 };
 
 Node::~Node()
 {
 }
-
-
-
-
-
-
-
-
-
 
 #endif

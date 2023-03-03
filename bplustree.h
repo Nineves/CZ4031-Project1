@@ -10,57 +10,61 @@ using namespace std;
 #ifndef BPTREE_H
 #define BPTREE_H
 
-class BPTree 
+class BPTree
 {
 private:
-
     Storage *memory;
-    Node *root;                                     //Root node in memory (if loaded)
-    
+    Node *root; // Root node in memory (if loaded)
+
     int maxNumOfKeys, numOfNodes, numOfLevels;
     unsigned int blockSize;
 
-
 public:
-
     BPTree(unsigned int nodeSize);
 
-    int getN() {
+    int getN()
+    {
         return maxNumOfKeys;
     }
 
-    int getNumOfLevels() {
+    int getNumOfLevels()
+    {
         return numOfLevels;
     }
 
-    int getNumOfNodes() {
+    int getNumOfNodes()
+    {
         return numOfNodes;
     }
 
-    void insert(int key, Record* recordAddress);
+    void insert(int key, Record *recordAddress);
 
     void remove(int key);
 
-    int split(Node *nodeToSplit, int key, Node* insertNode);
+    int split(Node *nodeToSplit, int key, Node *insertNode);
 
-    Node* searchLeafNode(int key);
+    Node *searchInsertLeafNode(int key);
+
+    Node *searchDeleteLeafNode(int key);
 
     void searchSingle(int key);
 
     void searchRange(int lowerBound, int higherBound);
 
-    Node* getRoot() {
+    Node *getRoot()
+    {
         return root;
     };
 
-    void displayNode(Node* curNode);
+    void displayNode(Node *curNode);
 
     void updateParents(int newKey, Node *parentAddr, Node *childAddr);
 
+    void updateDeletedParents(int newKey, Node *parentAddr, Node *childAddr);
+
     void createNewRoot(Node *node1, Node *node2);
 
-    void printNode(Node* treenode);
- 
+    void printNode(Node *treenode);
 };
 
 #endif
