@@ -38,7 +38,6 @@ private:
     int curNumOfKeys;
     unsigned int blockSize;
     Node *parentAddr;
-    Node *nextLeafNode;
     int* keys;
 
     union {

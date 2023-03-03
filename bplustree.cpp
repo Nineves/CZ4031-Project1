@@ -104,7 +104,7 @@ void BPTree::insert(int key, Record *recordAddress) {
                 splitLeafNode->insertLeafKey(key, recordAddress);
             }
             
-            curNode->nextLeafNode = splitLeafNode;
+            curNode->ptrs.nodePointers[maxNumOfKeys] = splitLeafNode;
 
             if (numOfLevels == 1) //CurNode is both leaf node and root node
             {
