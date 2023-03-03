@@ -47,9 +47,9 @@ public:
 
     Node *searchDeleteLeafNode(int key);
 
-    void searchSingle(int key);
+    Node *searchLeafNode(int key);
 
-    void searchRange(int lowerBound, int higherBound);
+    int getNumOfNodeSearch(int key);
 
     Node *getRoot()
     {
