@@ -253,6 +253,13 @@ void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr) {
             splitNonLeafNode->insertNonLeafKey(key, insertNode);
             childAddr->parentAddr = splitNonLeafNode;
         }
+
+        for (int i = 0; i < splitNonLeafNode->curNumOfKeys + 1; i++)
+        {
+            //Update parent pointer in child nodes of split node
+            splitNonLeafNode->ptrs.nodePointers[i]->parentAddr = splitNonLeafNode;
+        }
+        
     
         /*
             End of splitting node.
