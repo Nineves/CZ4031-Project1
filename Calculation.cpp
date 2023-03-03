@@ -15,14 +15,6 @@ int Calculation::GetMaxNumOfRecordsPerBlock(int blockSize)
     return numOfRecords - 1;
 }
 
-int Calculation::GetMaxNumOfRecordBlocks(int blockSize)
-{
-    int numOfRecords = GetMaxNumOfRecordsPerBlock(blockSize);
-    int numOfBlocks = ceil(TOTAL_NUM_OF_RECORDS / numOfRecords);
-
-    return numOfBlocks;
-}
-
 int Calculation::GetMaxNumOfKeysPerIndexBlock(int blockSize)
 {
     int numOfKeys = 1;
@@ -33,6 +25,16 @@ int Calculation::GetMaxNumOfKeysPerIndexBlock(int blockSize)
 
     return numOfKeys - 1;
 }
+
+
+int Calculation::GetMaxNumOfRecordBlocks(int blockSize)
+{
+    int numOfRecords = GetMaxNumOfRecordsPerBlock(blockSize);
+    int numOfBlocks = ceil(TOTAL_NUM_OF_RECORDS / numOfRecords);
+
+    return numOfBlocks;
+}
+
 
 int Calculation::GetMinNumOfKeysPerInternalNode(int blockSize)
 {
