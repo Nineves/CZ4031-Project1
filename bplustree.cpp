@@ -256,6 +256,36 @@ Node *BPTree::searchDeleteLeafNode(int key)
     return curNode;
 }
 
+Node* BPTree::searchLeafNode(int key) {
+    if(root == nullptr) {
+        cout << "Tree is empty\n";
+    }
+    else {
+        Node *curNode = root;
+        while(!curNode->isLeaf){
+            for(int i = 0; i < curNode->curNumOfKeys; i++){
+                if (curNode->keys[i] > key) {
+                    curNode = curNode->ptrs.nodePointers[i];                
+                    break;
+                }
+                if (i == curNode -> curNumOfKeys - 1) { 
+                    curNode = curNode->ptrs.nodePointers[i + 1];
+                    break;
+                }
+            }
+        }
+        for(int i = 0; i < curNode->curNumOfKeys; i++){
+            if(curNode->keys[i] == key){
+                cout << "We found the key!\n";
+                return curNode;
+            }
+        }
+        cout << "We cannot find the key!\n";
+        return nullptr;
+    }
+}
+
+
 void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr)
 {
 
