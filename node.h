@@ -21,6 +21,7 @@ private:
     LLNode *nodePointer;
 
     friend class BPTree;
+    friend class Node;
 
 public:
     LLNode(unsigned int blockSize);
@@ -30,11 +31,29 @@ public:
 
     void insert(Record *newAddress);
     int getMaxNumAddress(unsigned int nodeCapacity);
+    int getCurNumAddress(){
+        return curNumAddress;
+    }
+    vector<char*> getAllAddress(){
+        vector<char*> addrList = {};
+
+        LLNode* curNode = this;
+        while (curNode != nullptr)
+        {
+            for (int i = 0; i < curNode->curNumAddress; i++)
+            {
+                addrList.push_back((char*)(curNode->recordAddresses[i]));
+            }
+            curNode = curNode->nextNode;
+        }
+        
+        return addrList;
+    }
 };
 
 class Node
 {
-private:
+public:
     int maxNumOfKeys;
     int curNumOfKeys;
     int curNumOfPointers;
@@ -70,6 +89,8 @@ public:
     int getMaxKeyNum();
     void printNode();
     void moveLeafKey(int ind, int key, LLNode* recordAddr);
+    float calculateAve(int key);
+    LLNode* getLLNode(int key);
 };
 
 Node::~Node()

@@ -195,6 +195,12 @@ void BPTree::insert(int key, Record *recordAddress)
                 splitLeafNode->insertLeafKey(key, recordAddress);
             }
 
+            splitLeafNode->nextLeafNode = curNode->nextLeafNode;
+            if (curNode->nextLeafNode!=nullptr)
+            {
+                curNode->nextLeafNode->lastLeafNode = splitLeafNode;
+            }
+            
             curNode->nextLeafNode = splitLeafNode;
             splitLeafNode->lastLeafNode = curNode;
 
@@ -207,6 +213,157 @@ void BPTree::insert(int key, Record *recordAddress)
                 // update parent nodes
                 updateParents(splitLeafNode->keys[0], parentNode, splitLeafNode);
             }
+        }
+    }
+}
+
+void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr)
+{
+
+    Node *curNode = parentAddr;
+
+    // If there is empty space for insertion, we insert the node directly.
+    if (curNode->curNumOfKeys < curNode->maxNumOfKeys)
+    {
+        curNode->insertNonLeafKey(key, childAddr);
+        childAddr->parentAddr = parentAddr;
+        return;
+    }
+    else
+    {
+        /*
+            Splitting a non-leaf node
+        */
+        Node *nodeToSplit = parentAddr;
+        Node *insertNode = childAddr;
+        numOfNodes++;
+        int n = floor((nodeToSplit->maxNumOfKeys) / 2);
+        int pos = 0;
+        int newKey = -1;
+        Node *splitNonLeafNode = new Node(blockSize, false);
+        splitNonLeafNode->parentAddr = nodeToSplit->parentAddr;
+
+        if (key<nodeToSplit->keys[n] && key>nodeToSplit->keys[n-1])
+        {
+            pos = n;
+        }
+        
+        if (pos != n)
+        {
+            if (key < nodeToSplit->keys[n-1])
+            {
+                for (int i = n; i < nodeToSplit->maxNumOfKeys; i++)
+                {
+                    splitNonLeafNode->keys[i - n] = nodeToSplit->keys[i];
+                }
+                splitNonLeafNode->curNumOfKeys = nodeToSplit->maxNumOfKeys - n;
+
+                int k = 0;
+                for (int j = n; j < nodeToSplit->maxNumOfKeys + 1; j++)
+                {
+                    splitNonLeafNode->ptrs.nodePointers[k] = nodeToSplit->ptrs.nodePointers[j];
+                    k++;
+                }
+
+                newKey = nodeToSplit->keys[n-1];
+                for (int i = n - 1; i < nodeToSplit->maxNumOfKeys; i++)
+                {
+                    nodeToSplit->keys[i] = -1;
+                    nodeToSplit->ptrs.nodePointers[i + 1] = nullptr;
+                }
+                nodeToSplit->curNumOfKeys = n - 1;
+                nodeToSplit->insertNonLeafKey(key, childAddr);
+            }
+            else
+            {
+                int k = 0;
+                for (int i = n + 1; i < nodeToSplit->maxNumOfKeys; i++)
+                {
+                    splitNonLeafNode->keys[k] = nodeToSplit->keys[i];
+                    k++;
+                }
+                splitNonLeafNode->curNumOfKeys = nodeToSplit->maxNumOfKeys - n - 1;
+
+                k = 0;
+                for (int j = n + 1; j < nodeToSplit->maxNumOfKeys + 1; j++)
+                {
+                    splitNonLeafNode->ptrs.nodePointers[k] = nodeToSplit->ptrs.nodePointers[j];
+                    k++;
+                }
+                newKey = nodeToSplit->keys[n];
+                for (int i = n; i < nodeToSplit->maxNumOfKeys; i++)
+                {
+                    nodeToSplit->keys[i] = -1;
+                    nodeToSplit->ptrs.nodePointers[i + 1] = nullptr;
+                }
+                nodeToSplit->curNumOfKeys = n;           
+                splitNonLeafNode->insertNonLeafKey(key, childAddr);
+
+            }           
+        }
+        else // pos == n
+        {
+            for (int i = n; i < nodeToSplit->maxNumOfKeys; i++)
+            {
+                splitNonLeafNode->keys[i - n] = nodeToSplit->keys[i];
+            }
+
+            int k = 1;
+            for (int j = n + 1; j < nodeToSplit->maxNumOfKeys + 1; j++)
+            {
+                splitNonLeafNode->ptrs.nodePointers[k] = nodeToSplit->ptrs.nodePointers[j];
+                k++;
+            }
+
+            splitNonLeafNode->ptrs.nodePointers[0] = childAddr;
+            splitNonLeafNode->curNumOfKeys = nodeToSplit->maxNumOfKeys - n;
+            newKey = key;
+            childAddr->parentAddr = splitNonLeafNode;
+
+            for (int i = n; i < nodeToSplit->maxNumOfKeys; i++)
+            {
+                nodeToSplit->keys[i] = -1;
+                nodeToSplit->ptrs.nodePointers[i + 1] = nullptr;
+            }
+            nodeToSplit->curNumOfKeys = n;
+        }
+
+        for (int i = 0; i < splitNonLeafNode->curNumOfKeys + 1; i++)
+        {
+            //Update parent pointer in child nodes of split node
+            splitNonLeafNode->ptrs.nodePointers[i]->parentAddr = splitNonLeafNode;
+        }
+        
+    
+        /*
+            End of splitting node.
+        */
+
+        /*
+            If the node to split is a root node, we need to create a new root node.
+        */
+        if (parentAddr == root)
+        {
+            Node *newRoot = new Node(blockSize, false);
+            newRoot->ptrs.nodePointers[0] = parentAddr;
+            newRoot->insertNonLeafKey(newKey, splitNonLeafNode);
+            numOfLevels++;
+            numOfNodes++;
+
+            this->root = newRoot;
+            parentAddr->parentAddr = newRoot;
+
+            return;
+        }
+        else
+
+        /*
+        Recursive call.
+        */
+        {
+            parentAddr = curNode->parentAddr;
+
+            updateParents(newKey, parentAddr, splitNonLeafNode);
         }
     }
 }
@@ -466,30 +623,21 @@ Node *BPTree::searchDeleteLeafNode(int key)
         parentNode = curNode;
         for (int i = 0; i < curNode->curNumOfKeys; i++)
         {
-            if (flag == 0)
+            if (curNode->keys[i] > key)
             {
-                if (curNode->keys[i] == key)
-                {
-                    fordebug = curNode;
-                    curNode = curNode->ptrs.nodePointers[i];
-                    flag = 1;
-                    break;
-                }
+                fordebug = curNode;
+                curNode = curNode->ptrs.nodePointers[i];
+                break;
+            }
 
-                if (i == curNode->curNumOfKeys - 1)
-                {
-                    fordebug = curNode;
-                    curNode = curNode->ptrs.nodePointers[i + 1];
-                    break;
-                }
+            if (i == curNode->curNumOfKeys - 1)
+            {
+                fordebug = curNode;
+                curNode = curNode->ptrs.nodePointers[i + 1];
+                break;
             }
         }
         curNode->parentAddr = parentNode;
-    }
-
-    if (flag == 0)
-    {
-        throw("Cannot find the key to be deleted!");
     }
 
     return curNode;
@@ -534,6 +682,36 @@ Node *BPTree::searchLeafNode(int key)
     return nullptr;
 }
 
+Node *BPTree::searchRangeLeafNode(int key) {
+    if (root == nullptr)
+    {
+        cout << "Tree is empty\n";
+    }
+    else
+    {
+        Node *curNode = root;
+        while (!curNode->isLeaf)
+        {
+            for (int i = 0; i < curNode->curNumOfKeys; i++)
+            {
+                if (curNode->keys[i] > key)
+                {
+                    curNode = curNode->ptrs.nodePointers[i];
+                    // numOfAccessNodes++;
+                    break;
+                }
+                if (i == curNode->curNumOfKeys - 1)
+                {
+                    curNode = curNode->ptrs.nodePointers[i + 1];
+                    break;
+                }
+            }
+        }
+
+        return curNode;
+    } 
+}
+
 int BPTree::getNumOfNodeSearch(int key)
 {
     if (root == nullptr)
@@ -571,6 +749,7 @@ int BPTree::getNumOfNodeSearch(int key)
 
 void BPTree::mergeLeaf(Node *sourceNode, Node *mergeNode)
 {
+    this->numOfNodes --;
     for (int j = 0; j < mergeNode->curNumOfKeys; j++)
     {
         sourceNode->keys[sourceNode->curNumOfKeys + j] = mergeNode->keys[j];
@@ -599,6 +778,7 @@ void BPTree::mergeLeaf(Node *sourceNode, Node *mergeNode)
 void BPTree::mergeNonLeaf(Node *sourceNode, Node *mergeNode)
 {
     int addKey = 0;
+    this->numOfNodes --;
     while (!mergeNode->isLeaf)
     {
         mergeNode = mergeNode->ptrs.nodePointers[0];
