@@ -357,7 +357,7 @@ void BPTree::deleteKey(int key)
     /*
     1. Easy case
     */
-    if (curNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1)
+    if (curNode->curNumOfKeys >= floor((curNode->maxNumOfKeys + 1) / 2) + 1)
     {
         curNode->deleteLeafKey(key);
         // upDate parents
