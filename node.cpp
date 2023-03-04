@@ -179,30 +179,19 @@ int Node::insertLeafKey(int key, Record *recordAddress)
     return flag;
 }
 
-LLNode* Node::deleteLeafKey(int key, Storage *storage)
+int Node::deleteLeafKey(int key)
 {
-    LLNode* returnAddr;
-    vector<char*> recordList;
     for (int i = 0; i < curNumOfKeys; i++)
     {
         if (keys[i] == key)
         {
-            returnAddr = ptrs.dataPointers[i];
             doReverseShift(i);
-            
             // keys.pop_back();
             delete ptrs.dataPointers[curNumOfKeys];
             //ptrs.dataPointers[curNumOfKeys] = nullptr;
             curNumOfKeys--;
             curNumOfPointers--;
-
-            recordList = returnAddr->getAllAddress();
-            for (int i = 0; i < recordList.size(); i++)
-            {
-                storage->delete_item(recordList[i], sizeof(Record));
-            }
-            
-            return returnAddr;
+            return i;
         }
     }
 }
@@ -301,6 +290,18 @@ void Node::updateDeletedParents(int key)
         parentAddr = parentAddr->parentAddr;
     }
 }
+
+LLNode* Node::getLLNode(int target){
+    for (int i = 0; i < curNumOfKeys; i++)
+    {
+        if (target == keys[i])
+        {
+            return ptrs.dataPointers[i];
+        }
+    }
+    return nullptr;
+}
+
 
 LLNode::LLNode(unsigned int blockSize)
 {
