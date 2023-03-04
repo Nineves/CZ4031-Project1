@@ -263,19 +263,42 @@ void BPTree::remove(int key)
         {
             // merge with right
             curNode->deleteLeafKey(key);
-            // 要改
-            merge(curNode, nextNode, -1);
-            nextNode->parentAddr = nullptr;
-            // 这块
+            if (nextNode != nullptr)
+            {
+                mergeLeaf(curNode, nextNode);
+                nextNode->parentAddr = nullptr;
+            }
+            else
+            {
+                mergeLeaf(lastNode, curNode);
+                parentNode = lastNode->parentAddr;
+                curNode->parentAddr = nullptr;
+                curNode = pastNode;
+                curNode->parentAddr = parentNode;
+            }
             curNode = curNode->parentAddr;
             while (curNode->curNumOfKeys < floor((curNode->maxNumOfKeys) / 2))
             {
                 parentNode = curNode->parentAddr;
                 int flag = 0;
-                // flag = 1 left
-                // flag = -1 right
-                // 还没写
-                siblingNode = xxx;
+                for (int i = 0; i <= parentNode->curNumOfKeys; i++)
+                {
+                    if (parentNode->ptrs.nodePointers[i] == curNode)
+                    {
+                        if (i == parentNode->cuNumOfKeys)
+                        {
+                            siblingNode = parentNode->ptrs.nodePointers[i - 1];
+                            flag = 1;
+                            break;
+                        }
+                        else
+                        {
+                            siblingNode = parentNode->ptrs.nodePointers[i + 1];
+                            flag = -1;
+                            break;
+                        }
+                    }
+                }
                 if (siblingNode->curNumOfKeys > floor((siblingNode->maxNumOfKeys + 1) / 2) + 1 && flag == 1)
                 {
                     int borrow = siblingNode->keys[siblingNode->curNumOfKeys];
@@ -296,10 +319,19 @@ void BPTree::remove(int key)
                 }
                 else
                 {
-                    // 要改
-                    merge(curNode, siblingNode, -1);
-                    siblingNode->parentAddr = nullptr;
-                    // 这块
+                    if (flag == 1)
+                    {
+                        mergeNonLeaf(siblingNode, curNode);
+                        parentNode = siblingNode->parentAddr;
+                        curNode->parentAddr = nullptr;
+                        curNode = siblingNode;
+                        curNode->parentAddr = parentNode;
+                    }
+                    else if (flag == -1)
+                    {
+                        mergeNonLeaf(curNode, siblingNode);
+                        siblingNode->parentAddr = nullptr;
+                    }
                     curNode = curNode->parentAddr;
                     if (curNode->curNumOfKeys < floor((curNode->maxNumOfKeys) / 2) && curNode->parentAddr == root)
                     {
@@ -634,6 +666,27 @@ void BPTree::updateParents(int key, Node *parentAddr, Node *childAddr)
     }
 }
 
-void BPTree::updateDeletedParents(int key, Node *parentAddr, Node *childAddr)
+void BPTree::mergeLeaf(Node *sourceNode, *mergeNode)
 {
+
+    for (int j = 0; j < mergeNode->curNumOfKeys; j++)
+    {
+        sourceNode->keys[sourceNode->curNumOfKeys + j] = mergeNode->keys[j];
+        sourceNode->ptrs.nodePointers[sourceNode->curNumOfKeys + j] = mergeNode->ptrs.nodePointers[j];
+    }
+    sourceNode->curNumOfKeys = sourceNode->curNumOfKeys + mergeNode->curNumOfKeys;
+    sourceNode->ptrs.nodePointers[sourceNode->curNumOfKeys] = sourceNode->nextLeafNode;
+    return;
+}
+
+void BPTree::mergeNonLeaf(Node *sourceNode, *mergeNode)
+{
+    for (int j = 0; j < mergeNode->curNumOfKeys; j++)
+    {
+        sourceNode->keys[sourceNode->curNumOfKeys + j] = mergeNode->keys[j];
+        sourceNode->ptrs.nodePointers[sourceNode->curNumOfKeys + j] = mergeNode->ptrs.nodePointers[j];
+    }
+    sourceNode->curNumOfKeys = sourceNode->curNumOfKeys + mergeNode->curNumOfKeys;
+    sourceNode->ptrs.nodePointers[sourceNode->curNumOfKeys] = sourceNode->nextLeafNode;
+    return;
 }

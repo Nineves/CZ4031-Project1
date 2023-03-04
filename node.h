@@ -63,7 +63,6 @@ public:
     void doShift(int start);
     void doReverseShift(int start);
     void updateKey(int preKey, int curKey);
-    void merge();
     void updateDeletedParents(int key);
     Node(unsigned int blockSize, bool isLeaf);
     ~Node();

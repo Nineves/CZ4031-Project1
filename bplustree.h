@@ -67,10 +67,13 @@ public:
 
     void printNode(Node *treenode);
 
+    void mergeLeaf(Node *sourceNode, *mergeNode);
+
+    void mergeNonLeaf(Node *sourceNode, *mergeNode);
+
     bool CheckTree();
 
-    bool CheckNode(Node* pNode);
-
+    bool CheckNode(Node *pNode);
 };
 
 #endif
