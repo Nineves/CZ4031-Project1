@@ -61,8 +61,6 @@ public:
 
     void updateParents(int newKey, Node *parentAddr, Node *childAddr);
 
-    void updateDeletedParents(int newKey, Node *parentAddr, Node *childAddr);
-
     void createNewRoot(Node *node1, Node *node2);
 
     void printNode(Node *treenode);
