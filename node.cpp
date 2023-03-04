@@ -289,9 +289,7 @@ void Node::updateDeletedParents(int key)
         parentAddr = parentAddr->parentAddr;
     }
 }
-void Node::merge()
-{
-}
+
 LLNode::LLNode(unsigned int blockSize)
 {
     unsigned int nodeCapacity = blockSize - sizeof(bool) - 2 * sizeof(int) - sizeof(size_t);
