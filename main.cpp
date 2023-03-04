@@ -147,7 +147,7 @@ int main()
             default:
             {
                 validSelection = false;
-                cout << "Your selection is invalid, please select a valid option. (0, 1, 2, 3, 4, 5, or, 6)\n"<<endl;
+                cout << "Your selection is invalid, please select a valid option. (1, 2, 3, 4, 5, or, 6)\n"<<endl;
             }
             }
         } while (!validSelection);
@@ -453,7 +453,6 @@ int bruteForceDelete(int target)
 }
 
 
-// experiment 1 helper code
 void store_records(Storage *storage)
 {
     int skip_header = 0;
@@ -499,8 +498,10 @@ void store_records(Storage *storage)
 
     cout << "Total storage space: " << (double)storage->get_storage_size() / 1000000.0 << " MB" << endl;
     cout << "Block size: " << storage->get_blk_size() << " Bytes" << endl;
+    cout << "Number of Records: " << TOTAL_NUM_OF_RECORDS << endl;
     cout << "Record size: " << RECORD_SIZE << " Bytes" << endl;
-    cout << "Allocated number of blocks: " << storage->get_allocated_nof_blk()<< endl;
+    cout << "Number of records stored in a block" << Calculation->GetMaxNumOfRecordsPerBlock(blockSize)<< endl;
+    cout << "Number of blocks for storing the data: " << storage->get_allocated_nof_blk()<< endl;
     cout << "Allocated size: " << (double)storage->get_allocated_size() / 1000000.0 << " MB"  << endl;
 
     return;
