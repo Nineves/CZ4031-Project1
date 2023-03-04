@@ -179,7 +179,7 @@ int Node::insertLeafKey(int key, Record *recordAddress)
     return flag;
 }
 
-void Node::deleteLeafKey(int key)
+int Node::deleteLeafKey(int key)
 {
     for (int i = 0; i < curNumOfKeys; i++)
     {
@@ -191,7 +191,7 @@ void Node::deleteLeafKey(int key)
             //ptrs.dataPointers[curNumOfKeys] = nullptr;
             curNumOfKeys--;
             curNumOfPointers--;
-            break;
+            return i;
         }
     }
 }
@@ -276,6 +276,7 @@ void Node::doReverseShift(int start)
 
 void Node::updateDeletedParents(int key)
 {
+
     while (parentAddr != nullptr)
     {
         for (int i = 0; i < curNumOfKeys; i++)

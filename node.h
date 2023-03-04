@@ -60,7 +60,7 @@ public:
     void insertNonLeafKey(int key, Node *newNodeAddress);
     int insertLeafKey(int key, Record *recordAddress);
     void deleteNonLeafKey(int key);
-    void deleteLeafKey(int key);
+    int deleteLeafKey(int key);
     void doShift(int start);
     void doReverseShift(int start);
     void updateKey(int preKey, int curKey);
