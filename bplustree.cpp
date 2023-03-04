@@ -234,20 +234,30 @@ void BPTree::remove(int key)
     }
     else
     {
+        // 查同一个parent
         Node *lastNode = curNode->lastLeafNode;
         Node *nextNode = curNode->nextLeafNode;
         Node *siblingNode = nullptr;
-        if ((lastNode!=nullptr) &&(lastNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1))
+        if (lastNode->curNumOfKeys >= floor((curNode->maxNumOfKeys + 1) / 2) + 1)
         {
             // borrow one from left
+            int flag = 0;
+            if (curNode->keys[0] == key)
+            {
+                flag = 1;
+            }
             curNode->deleteLeafKey(key);
-            int borrow = lastNode->keys[lastNode->curNumOfKeys - 1];
+            int borrow = lastNode->keys[lastNode->curNumOfKeys];
             LLNode *borrowNode = lastNode->ptrs.dataPointers[lastNode->curNumOfKeys];
             lastNode->deleteLeafKey(borrow);
-            curNode->moveLeafKey(0, borrow, borrowNode);
+            curNode->insertLeafKey(borrow, borrowNode);
+            if (flag == 1)
+            {
+                curNode->(key);
+            }
             return;
         }
-        else if (nextNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1)
+        else if (nextNode->curNumOfKeys >= floor((curNode->maxNumOfKeys + 1) / 2) + 1)
         {
             // borrow one from right
             curNode->deleteLeafKey(key);
@@ -273,10 +283,12 @@ void BPTree::remove(int key)
                 mergeLeaf(lastNode, curNode);
                 parentNode = lastNode->parentAddr;
                 curNode->parentAddr = nullptr;
-                curNode = pastNode;
+                curNode = lastNode;
                 curNode->parentAddr = parentNode;
             }
             curNode = curNode->parentAddr;
+            curNode->curNumOfKeys -= 1;
+            // shift curNode
             while (curNode->curNumOfKeys < floor((curNode->maxNumOfKeys) / 2))
             {
                 parentNode = curNode->parentAddr;
