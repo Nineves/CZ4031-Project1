@@ -237,14 +237,14 @@ void BPTree::remove(int key)
         Node *lastNode = curNode->lastLeafNode;
         Node *nextNode = curNode->nextLeafNode;
         Node *siblingNode = nullptr;
-        if (lastNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1)
+        if ((lastNode!=nullptr) &&(lastNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1))
         {
             // borrow one from left
             curNode->deleteLeafKey(key);
-            int borrow = lastNode->keys[lastNode->curNumOfKeys];
-            Node *borrowNode = lastNode->ptrs.dataPointers[lastNode->curNumOfKeys];
+            int borrow = lastNode->keys[lastNode->curNumOfKeys - 1];
+            LLNode *borrowNode = lastNode->ptrs.dataPointers[lastNode->curNumOfKeys];
             lastNode->deleteLeafKey(borrow);
-            curNode->insertLeafKey(borrow, borrowNode);
+            curNode->moveLeafKey(0, borrow, borrowNode);
             return;
         }
         else if (nextNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1)
@@ -252,9 +252,9 @@ void BPTree::remove(int key)
             // borrow one from right
             curNode->deleteLeafKey(key);
             int borrow = nextNode->keys[0];
-            Node *borrowNode = nextNode->ptrs.dataPointers[0];
+            LLNode *borrowNode = nextNode->ptrs.dataPointers[0];
             nextNode->deleteLeafKey(borrow);
-            curNode->insertLeafKey(borrow, borrowNode);
+            curNode->moveLeafKey(curNode->curNumOfKeys, borrow, borrowNode);
             // upDate parents
             curNode->upDateDeletedParents(key);
             return;
@@ -312,6 +312,122 @@ void BPTree::remove(int key)
         }
     }
 }
+
+
+void BPTree::deleteKey(int key)
+{
+    Node *curNode = root;
+    Node *parentNode = nullptr;
+
+    curNode = searchDeleteLeafNode(key);
+    parentNode = curNode->parentAddr;
+
+    /*
+    1. Easy case
+    */
+    if (curNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1)
+    {
+        curNode->deleteLeafKey(key);
+        // upDate parents
+        if (curNode->keys[0] == key)
+        {
+            upDateDeletedParents(curNode, key);
+            return;
+        }
+    }
+    else
+    {
+        Node *lastNode = curNode->lastLeafNode;
+        Node *nextNode = curNode->nextLeafNode;
+        Node *siblingNode = nullptr;
+        if ((lastNode!=nullptr) &&(lastNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1))
+        {
+            // borrow one from left
+            curNode->deleteLeafKey(key);
+            int borrow = lastNode->keys[lastNode->curNumOfKeys - 1];
+            LLNode *borrowNode = lastNode->ptrs.dataPointers[lastNode->curNumOfKeys];
+            lastNode->deleteLeafKey(borrow);
+            curNode->moveLeafKey(0, borrow, borrowNode);
+            curNode->updateDeletedParentKey(key, borrow);
+            return;
+        }
+        else if (nextNode->curNumOfKeys > floor((curNode->maxNumOfKeys + 1) / 2) + 1)
+        {
+            // borrow one from right
+            int flag = 0;
+            curNode->deleteLeafKey(key);
+            if (curNode->keys[0] == key) {
+                flag = 1;
+            }
+            int borrow = nextNode->keys[0];
+            LLNode *borrowNode = nextNode->ptrs.dataPointers[0];
+            nextNode->deleteLeafKey(borrow);
+            curNode->moveLeafKey(curNode->curNumOfKeys, borrow, borrowNode);
+            // upDate parents
+            if (flag == 1)
+            {
+                
+            }
+            
+            upDateDeletedParents(key);
+            return;
+        }
+        else
+        {
+            // merge with right
+            curNode->deleteLeafKey(key);
+            // 要改
+            merge(curNode, nextNode, -1);
+            nextNode->parentAddr = nullptr;
+            // 这块
+            curNode = curNode->parentAddr;
+            while (curNode->curNumOfKeys < floor((curNode->maxNumOfKeys) / 2))
+            {
+                parentNode = curNode->parentAddr;
+                int flag = 0;
+                // flag = 1 left
+                // flag = -1 right
+                // 还没写
+                siblingNode = xxx;
+                if (siblingNode->curNumOfKeys > floor((siblingNode->maxNumOfKeys + 1) / 2) + 1 && flag == 1)
+                {
+                    int borrow = siblingNode->keys[siblingNode->curNumOfKeys];
+                    Node *borrowNode = siblingNode->ptrs.dataPointers[siblingNode->curNumOfKeys];
+                    siblingNode->deleteLeafKey(borrow);
+                    curNode->insertLeafKey(borrow, borrowNode);
+                    return;
+                }
+                else if (siblingNode->curNumOfKeys > floor((siblingNode->maxNumOfKeys + 1) / 2) + 1 && flag == -1)
+                {
+                    int borrow = siblingNode->keys[0];
+                    Node *borrowNode = siblingNode->ptrs.dataPointers[0];
+                    siblingNode->deleteLeafKey(borrow);
+                    curNode->insertLeafKey(borrow, borrowNode);
+                    // update parents
+                    curNode->upDateDeletedParents(key);
+                    return;
+                }
+                else
+                {
+                    // 要改
+                    merge(curNode, siblingNode, -1);
+                    siblingNode->parentAddr = nullptr;
+                    // 这块
+                    curNode = curNode->parentAddr;
+                    if (curNode->curNumOfKeys < floor((curNode->maxNumOfKeys) / 2) && curNode->parentAddr == root)
+                    {
+                        curNode->parentAddr = nullptr;
+                        root = curNode;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
 
 void BPTree::createNewRoot(Node *node1, Node *node2)
 {

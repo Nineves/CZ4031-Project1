@@ -71,6 +71,8 @@ public:
 
     bool CheckNode(Node* pNode);
 
+    void deleteKey(int key);
+
 };
 
 #endif

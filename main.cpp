@@ -33,9 +33,9 @@ void RunExperiment4(Storage* storage, BPTree *bPlusTree);
 void RunExperiment5(Storage *storage, BPTree *bPlusTree, int key);
 
 void bruteForceSearch(Storage *storage, int start, int end = 0);
-void report_bPlusTree_statistics(bplustree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content);
-void delete_records(Storage *storage, bplustree *bPlusTree, int key);
-void delete_key_in_index(bplustree *bPlusTree, int key);
+void report_bPlusTree_statistics(BPTree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content);
+void delete_records(Storage *storage, BPTree *bPlusTree, int key);
+void delete_key_in_index(BPTree *bPlusTree, int key);
 void delete_records_in_db(Storage *storage, vector<char *> record_addresses);
 vector<char *> get_all_record_addr(Node *start_node, int numOfNodeAccess, int start, int end = 0);
 
@@ -203,7 +203,7 @@ void RunExperiment3(Storage* storage, BPTree *bPlusTree)
 {
     int key_to_find = 500;
     auto time1 = high_resolution_clock::now();
-    Node *start_node = bPlusTree->SearchLeafNode(key_to_find);
+    Node *start_node = bPlusTree->searchLeafNode(key_to_find);
     auto time2 = high_resolution_clock::now();
     int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(key_to_find);
     auto time3 = high_resolution_clock::now();
@@ -225,7 +225,7 @@ void RunExperiment4(Storage* storage, BPTree* bPlusTree)
     int start_of_range = 30000;
     int end_of_range = 40000;
     auto time1 = high_resolution_clock::now();
-    Node *start_node = bPlusTree->SearchLeafNode(start_of_range);
+    Node *start_node = bPlusTree->searchLeafNode(start_of_range);
     auto time2 = high_resolution_clock::now();
     int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(start_of_range);
     auto time3 = high_resolution_clock::now();
@@ -596,7 +596,7 @@ void delete_records_in_db(Storage *storage, vector<char *> record_addresses)
     }
 }
 
-void delete_key_in_index(bplustree *bPlusTree, int key)
+void delete_key_in_index(BPTree *bPlusTree, int key)
 {
     bool res = bPlusTree->Delete(key);
     if (res)
