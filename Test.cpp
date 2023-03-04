@@ -69,7 +69,26 @@ int main() {
 
     RunExperiment1(storage);
 
-    RunExperiment2(storage);
+    BPTree* bpTree = RunExperiment2(storage);
+
+    cout<<"Deletin"<<endl;
+    bpTree->remove(1000, storage);
+
+    if (bpTree->CheckTree())
+    {
+        cout<<"True"<<endl;
+    }
+
+    bpTree->printNode(bpTree->getRoot());
+
+    Node* firstLeaf = bpTree->getFirstLeaf();
+    while (firstLeaf!=nullptr)
+    {
+        firstLeaf->printNode();
+        firstLeaf = firstLeaf->nextLeafNode;
+    }
+    
+    
 
 
     return 0;
@@ -144,29 +163,25 @@ BPTree* RunExperiment2(Storage *storage)
     return bPlusTree;
 }
 
+
 void buildBPTree(Storage *storage, BPTree* bPlusTree)
 {   
-    int count = 0;
-    char** allBlks = storage->getAllBlocks();
-    int n = storage->get_allocated_nof_blk();
-    vector<Record> curRecords;
-
-    for (int i = 0; i < n; i++)
+    int offset = storage->get_blk_size();
+    char *curr_block_ptr = (char *)storage->get_storage_ptr();
+    int num_allocated_blocks = storage->get_allocated_nof_blk();
+    for (int i = 0; i < num_allocated_blocks; i++)
     {
-        char* curBlock = allBlks[i];
-        curRecords = storage->retrieve_blk(curBlock);
-        int numOfRecords = curRecords.size();
-        int key;
-        for (int j = 0; j < numOfRecords; j++)
+        vector<Record> curr_block_records = storage->retrieve_blk(curr_block_ptr);
+        for (int j = 0; j < curr_block_records.size(); j++)
         {
-            key = curRecords[j].getNumOfVotes();           
-            Record record = curRecords[j];
-            bPlusTree->insert(key, &record);
-            count++;
-            //printf("COUNT  %d\n",count);
-        }
-    }
+            Record curr_record = curr_block_records.at(j);
+            int numVotes = curr_record.getNumOfVotes();
 
+            char *original_record_pointer = curr_block_ptr + j * (sizeof(Record));
+            bPlusTree->insert(numVotes, (Record*)original_record_pointer);
+        }
+        curr_block_ptr += offset;
+    }
 }
 
 void reportBPTreeStatistics(BPTree* bPlusTree)

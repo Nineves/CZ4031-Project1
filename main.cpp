@@ -78,8 +78,8 @@ int main()
 
     RunExperiment1(storage);
     BPTree* bpt = RunExperiment2(storage);
-    //RunExperiment3(storage, bpt);
-    //RunExperiment4(storage, bpt);
+    RunExperiment3(storage, bpt);
+    RunExperiment4(storage, bpt);
     RunExperiment5(storage, bpt, 5);
 
 
@@ -472,6 +472,7 @@ void store_records(Storage *storage)
         int name;
         int16_t average_rating_int;
         int numofvotes;
+        float average_rating_float;
         for (int i = 0; i < 3; i++)
         {
             getline(record_string, string_component, '\t');
@@ -482,7 +483,7 @@ void store_records(Storage *storage)
             }
             else if (i == 1)
             {
-                float average_rating_float = stof(string_component);
+                average_rating_float = stof(string_component);
                 average_rating_int = static_cast<int16_t>(average_rating_float * 10);
             }
             else
@@ -490,7 +491,9 @@ void store_records(Storage *storage)
                 numofvotes = stoi(string_component);
             }
         }
-        Record temp(name, (int16_t)average_rating_int, numofvotes);
+        //Record temp(name, (int16_t)average_rating_int, numofvotes);
+        Record temp(name, average_rating_float, numofvotes);
+
 
         storage->insert_item(&temp, RECORD_SIZE);
         record_number++;
