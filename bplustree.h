@@ -38,11 +38,6 @@ public:
         return numOfNodes;
     }
 
-    Node *getFirstLeaf()
-    {
-        return leafHead;
-    }
-
     void insert(int key, Record *recordAddress);
 
     void remove(int key, Storage *storage);
@@ -79,8 +74,6 @@ public:
     void deleteKey(int key);
 
     bool CheckNode(Node *pNode);
-
-    Node* searchRangeLeafNode(int key);
 };
 
 #endif

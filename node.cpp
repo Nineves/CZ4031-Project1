@@ -302,18 +302,6 @@ void Node::updateDeletedParents(int key)
     }
 }
 
-LLNode* Node::getLLNode(int target){
-    for (int i = 0; i < curNumOfKeys; i++)
-    {
-        if (target == keys[i])
-        {
-            return ptrs.dataPointers[i];
-        }
-    }
-    return nullptr;
-}
-
-
 LLNode::LLNode(unsigned int blockSize)
 {
     unsigned int nodeCapacity = blockSize - sizeof(bool) - 2 * sizeof(int) - sizeof(size_t);

@@ -9,14 +9,12 @@
 #include "node.h"
 #include "node.cpp"
 #include <cstdlib>
-#include <set>
 #include <fstream> //ifstream
 #include <sstream>  // stringstream
 #include <iostream> // cout, endl
 #include <iomanip>  // ws
 #include <map>      // map
 #include <string>
-#include <chrono> 
 #pragma pack(1)
 
 using std::cout;
@@ -43,7 +41,6 @@ void report_bPlusTree_statistics(BPTree *bPlusTree, int block_size, bool paramet
 void delete_records(Storage *storage, BPTree *bPlusTree, int key);
 void delete_key_in_index(BPTree *bPlusTree, int key);
 void delete_records_in_db(Storage *storage, vector<char *> record_addresses);
-
 vector<char *> get_all_record_addr(Node *start_node, int numOfNodeAccess, int start, int end = 0);
 
 
@@ -118,14 +115,14 @@ int main()
             case '3':
             {
                 cout << "Running experiment 3...\n";
-                RunExperiment3(storage, bPlusTree);
+                //RunExperiment3(storage, bPlusTree);
                 cout << "Completed experiment 3...\n"<<endl;
                 break;
             }
             case '4':
             {
                 cout << "Running experiment 4...\n";
-                RunExperiment4(storage, bPlusTree);
+                //RunExperiment4(storage, bPlusTree);
                 cout << "Completed experiment 4...\n"<<endl;
                 break;
             }
@@ -133,7 +130,7 @@ int main()
              {
                 cout << "Running experiment 5...\n";
                 // code to run experiment 5
-                RunExperiment5(storage, bPlusTree, 1000);
+                //RunExperiment5(storage, bPlusTree, 1000);
                 cout << "Completed experiment 5...\n"<<endl;
                 break;
              }
@@ -172,22 +169,27 @@ BPTree* RunExperiment2(Storage *storage)
 
 void buildBPTree(Storage *storage, BPTree* bPlusTree)
 {   
-    int offset = storage->get_blk_size();
-    char *curr_block_ptr = (char *)storage->get_storage_ptr();
-    int num_allocated_blocks = storage->get_allocated_nof_blk();
-    for (int i = 0; i < num_allocated_blocks; i++)
-    {
-        vector<Record> curr_block_records = storage->retrieve_blk(curr_block_ptr);
-        for (int j = 0; j < curr_block_records.size(); j++)
-        {
-            Record curr_record = curr_block_records.at(j);
-            int numVotes = curr_record.getNumOfVotes();
+    int count = 0;
+    char** allBlks = storage->getAllBlocks();
+    int n = storage->get_allocated_nof_blk();
+    vector<Record> curRecords;
 
-            char *original_record_pointer = curr_block_ptr + j * (sizeof(Record));
-            bPlusTree->insert(numVotes, (Record*)original_record_pointer);
+    for (int i = 0; i < n; i++)
+    {
+        char* curBlock = allBlks[i];
+        curRecords = storage->retrieve_blk(curBlock);
+        int numOfRecords = curRecords.size();
+        int key;
+        for (int j = 0; j < numOfRecords; j++)
+        {
+            key = curRecords[j].getNumOfVotes();           
+            Record record = curRecords[j];
+            bPlusTree->insert(key, &record);
+            count++;
+            //printf("COUNT  %d\n",count);
         }
-        curr_block_ptr += offset;
     }
+
 }
 
 void reportBPTreeStatistics(BPTree* bPlusTree)
@@ -198,198 +200,59 @@ void reportBPTreeStatistics(BPTree* bPlusTree)
     bPlusTree->printNode(bPlusTree->getRoot());
 }
 
-void RunExperiment3(Storage* storage, BPTree *bPlusTree)
+/*
+bplustree* RunExperiment2(Storage *storage)
 {
-    int target = 500;
-    auto time1 = high_resolution_clock::now();
-
-    Node *leafNode = bPlusTree->searchLeafNode(target);
-    LLNode *recordList = leafNode->getLLNode(target);
-    vector<char*> recordAddrs = recordList->getAllAddress();
-    vector<Record> records = {};
-
-    int sum = 0;
-    for(int i=0; i < recordAddrs.size(); i ++){
-        Record curRecord = storage->retrieve_record(recordAddrs[i]);
-        records.push_back(curRecord);
-        cout<<curRecord.rating2Dec()<<endl;
-    }
-    auto time2 = high_resolution_clock::now();
-
-    float aveNum = calcAverage(records);
-
-    int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(target);
-    int numOfBlocksAccess_tree = getNumOfBlksAccessed(recordAddrs, storage);
-
-    auto time3 = high_resolution_clock::now();
-    int numOfBlocksAccess_brutal = bruteForce(target, storage);
-    auto time4 = high_resolution_clock::now();
-
-    auto duration1 = duration_cast<microseconds>(time2 - time1);
-    auto duration2 = duration_cast<microseconds>(time4 - time3);
-
-    cout << "The number of index nodes accessed: "<< numOfNodeAccess << endl;
-    cout << "The number of data blocks accessed: "<< numOfBlocksAccess_tree <<endl;
-    cout << "The average rating is: "<< aveNum <<endl;
-    cout << "The running time of the search & retrieval process (with B+ Tree): " << duration1.count() << " microseconds" << endl;
-    cout << "The running time of the search & retrieval process (in brute force): " << duration2.count() << " microseconds" << endl;
-    cout << "The number of data blocks accessed (in brutal force): " << storage->get_allocated_nof_blk() << endl;
-
+    bplustree* bPlusTree = new bplustree(cals.GetMaxNumOfKeysPerIndexBlock(storage->get_blk_size()));
+    build_BPlus_tree(storage, bPlusTree);
+    report_bPlusTree_statistics(bPlusTree, storage->get_blk_size(), true, true, true, true);
+    return bPlusTree;
 }
+*/
 
-void RunExperiment4(Storage* storage, BPTree *bPlusTree)
-{
-    int start_of_range = 30000;
-    int end_of_range = 40000;
-    set<int> blk_index;
-    int blk;
+// void RunExperiment3(Storage* storage, BPTree *bPlusTree)
+// {
+//     int key_to_find = 500;
+//     auto time1 = high_resolution_clock::now();
+//     Node *start_node = bPlusTree->searchLeafNode(key_to_find);
+//     auto time2 = high_resolution_clock::now();
+//     int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(key_to_find);
+//     auto time3 = high_resolution_clock::now();
+//     vector<char *> record_addresses = get_all_record_addr(start_node, numOfNodeAccess, key_to_find);
+//     auto time4 = high_resolution_clock::now();
 
-    vector<LLNode*> LLNodeList = {};
-    auto time1 = high_resolution_clock::now();
-    Node *start_node = bPlusTree->searchRangeLeafNode(start_of_range);
-    Node *cur_node = start_node;
-    vector<Record> records = {};
-    while (cur_node->keys[0] <= end_of_range)
-    {
-        for (int i = 0; i < cur_node->curNumOfKeys; i++)
-        {
-            if (cur_node->keys[i] >= start_of_range && cur_node->keys[i] <= end_of_range)
-            {
-                LLNode *curLLNode = cur_node->ptrs.dataPointers[i];
-                vector<char*> recordAddrs = curLLNode->getAllAddress();
-                
-                for(int i=0; i < recordAddrs.size(); i ++){                 
-                    blk = storage->get_blk_id(recordAddrs[i]);
-                    blk_index.insert(blk);
-                    Record curRecord = storage->retrieve_record(recordAddrs[i]);
-                    records.push_back(curRecord);
-                }
-            }
-        }
-        cur_node = cur_node->nextLeafNode;
-        
-        
-        if (cur_node == nullptr)
-        {
-            cout<<"Reached end"<<endl;
-            break;
-        }
-        
-        
-    }
-    auto time2 = high_resolution_clock::now();
-    
-    cout<<records.size()<<endl;
-    float aveNum = calcAverage(records);
+//     retrieve_search_statistics_storage(storage, record_addresses);
 
-    int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(start_of_range);
-    int numOfBlocksAccess_tree = blk_index.size();
+//     auto duration1 = duration_case<microseconds>(time2 - time1);
+//     auto duration2 = duration_case<microseconds>(time4 - time3);
+//     cout << "The running time of the retrieval process: " << duration1.count() + duration2.count() << " microseconds" << endl;
 
-    auto time3 = high_resolution_clock::now();
-    int numOfBlocksAccess_brutal = bruteForce_range(start_of_range, end_of_range, storage);
-    auto time4 = high_resolution_clock::now();
+//     bruteForceSearch(storage, key_to_find);
+//     // retrieve_search_statistics_index(bPlusTree, start_node, key_to_find);
+// }
 
-    auto duration1 = duration_cast<microseconds>(time2 - time1);
-    auto duration2 = duration_cast<microseconds>(time4 - time3);
+// void RunExperiment4(Storage* storage, BPTree* bPlusTree)
+// {
+//     int start_of_range = 30000;
+//     int end_of_range = 40000;
+//     auto time1 = high_resolution_clock::now();
+//     Node *start_node = bPlusTree->searchLeafNode(start_of_range);
+//     auto time2 = high_resolution_clock::now();
+//     int numOfNodeAccess = bPlusTree->getNumOfNodeSearch(start_of_range);
+//     auto time3 = high_resolution_clock::now();
+//     vector<char *> record_addresses = get_all_record_addr(start_node, numOfNodeAccess, start_of_range, end_of_range);
+//     auto time4 = high_resolution_clock::now();
 
-    cout << "The number of index nodes accessed: "<< numOfNodeAccess << endl;
-    cout << "The number of data blocks accessed: "<< numOfBlocksAccess_tree <<endl;
-    cout << "The average rating is: "<< aveNum <<endl;
-    cout << "The running time of the search & retrieval process (with B+ Tree): " << duration1.count() << " microseconds" << endl;
-    cout << "The running time of the search & retrieval process (in brute force): " << duration2.count() << " microseconds" << endl;
-    cout << "The number of data blocks accessed (in brutal force): " << storage->get_allocated_nof_blk() << endl;
-}
+//     retrieve_search_statistics_storage(storage, record_addresses);
 
-int getNumOfBlksAccessed(vector<char*> recordAddrs, Storage* storage)
-{
-    set<int> blk_index;
-    int blk;
-    for (int i = 0; i < recordAddrs.size(); i++)
-    {
-        blk = storage->get_blk_id(recordAddrs[i]);
-        blk_index.insert(blk);
-    }
-    return blk_index.size();
-    
-};
+//     auto duration1 = duration_case<microseconds>(time2 - time1);
+//     auto duration2 = duration_case<microseconds>(time4 - time3);
+//     cout << "The running time of the retrieval process: " << duration1.count() + duration2.count() << " microseconds" << endl;
 
-float calcAverage(vector<Record> records) {
-    float sum = 0;
-    
-    for (int i = 0; i < records.size(); i++)
-    {
-        sum +=  records[i].rating2Dec();
-        //cout<< records[i].rating2Dec()<<endl;
-        
-    }
-    
-
-    return sum/records.size();
-    
-}
-
-int bruteForce(int target, Storage *storage) {
-    int count = 0;
-    int flag = 0;
-    int sum = 0;
-    char** allBlks = storage->getAllBlocks();
-    int n = storage->get_allocated_nof_blk();
-    vector<Record> curRecords;
-
-    for (int i = 0; i < n; i++)
-    {
-        char* curBlock = allBlks[i];
-        curRecords = storage->retrieve_blk(curBlock);
-        int numOfRecords = curRecords.size();
-        int key;
-        for (int j = 0; j < numOfRecords; j++)
-        {
-            key = curRecords[j].getNumOfVotes();           
-            Record record = curRecords[j];
-            if (key == target)
-            {
-                sum += record.getAvgRating();
-            }
-            
-            //printf("COUNT  %d\n",count);
-        }
-        count ++;
-    }
-
-    return count;
-}
-
-int bruteForce_range(int start, int end, Storage *storage) {
-    int count = 0;
-    int flag = 0;
-    int sum = 0;
-    char** allBlks = storage->getAllBlocks();
-    int n = storage->get_allocated_nof_blk();
-    vector<Record> curRecords;
-
-    for (int i = 0; i < n; i++)
-    {
-        char* curBlock = allBlks[i];
-        curRecords = storage->retrieve_blk(curBlock);
-        int numOfRecords = curRecords.size();
-        int key;
-        for (int j = 0; j < numOfRecords; j++)
-        {
-            key = curRecords[j].getNumOfVotes();           
-            Record record = curRecords[j];
-            if (key <end && key > start)
-            {
-                sum += record.getAvgRating();
-            }
-            
-            //printf("COUNT  %d\n",count);
-        }
-        count ++;
-    }
-
-    return count;
-}
-
+//     bruteForceSearch(storage, start_of_range, end_of_range);
+//     // code for number and content of index nodes the process accesses
+//     // retrieve_search_statistics_index(bPlusTree, start_node, start_of_range, end_of_range);
+// }
 
 void RunExperiment5(Storage *storage, BPTree *bPlusTree, int key)
 {
@@ -508,6 +371,287 @@ void store_records(Storage *storage)
 
     return;
 }
+
+
+// void report_bPlusTree_statistics(BPTree *bPlusTree, int block_size, bool parameter_n, bool num_nodes, bool height, bool content)
+// {
+//     Calculation cals = Calculations();
+//     if (parameter_n)
+//     {
+//         cout << "Parameter n of B+ tree: " << cals.GetMaxNumOfKeysPerIndexBlock(block_size) << endl; // could change depending on BPlusTree/CNode attributes
+//     }
+//     if (num_nodes)
+//     {
+//         CNode* rootnode = bPlusTree->GetRoot();
+//         cout << "Number of nodes of the B+ tree: " << bPlusTree->NumofNode(rootnode) + 1 << "\n";
+//     }
+//     if (height)
+//     {
+//         int h = 0;
+//         CNode* curr_node = bPlusTree->GetRoot();
+//         while (curr_node->GetType() != NODE_TYPE_LEAF)
+//         {
+//             h++; // number of internal nodes in path
+//             curr_node = curr_node->GetPointer(1);
+//         }
+//         h++;
+//         cout << "Height of B+ tree = " << h << "\n";
+//     }
+//     if (content)
+//     {
+//         // code to print content of root node and its first child node
+//         CNode *root = bPlusTree->GetRoot();
+//         CNode *child = nullptr;
+//         if (root->GetType()!=NODE_TYPE_LEAF){
+//             child = root->GetPointer(1);
+//         }
+//         cout << "Root node keys: ";
+//         for (int i = 1; i <= root->GetCount();i++){
+//             cout << root->GetElement(i) << " | ";
+//         }
+//         cout << "\n";
+//         if (child == nullptr){
+//             cout << "Root node is a leaf node and therefore has no child;\n";
+//         }
+//         else{
+//             cout << "First child node keys: ";
+//             for (int i = 1; i <= child->GetCount(); i++){
+//                 cout << child->GetElement(i) << " | ";
+//             }
+//             cout << "\n";
+//         }
+//     }
+// }
+
+// experiment 3 and 4
+// vector<char *> get_all_record_addr(Node *start_node, int numOfNodeAccess, int start, int end)
+// {
+
+//     if (start_node == nullptr){
+//         cout << "This shouldnt happen";
+//     }
+//     int numOfNodeAccessed = numOfNodeAccess;
+
+//     vector<char*> record_addr = {};
+//     vector<Parray*> parrays = {};
+
+//     if (end == 0){
+//         end = start;
+//     }
+
+//     int curr_key = start;
+//     Node *curr_node = start_node;
+//     bool flag_for_while = true;
+//     do{
+//         int i = 1;
+//         for (i = 1; (i <= curr_node->GetCount()); i++)
+//         {
+//             int curr_key_in_node = curr_node->keys[i];
+//             if (curr_key_in_node >= start && curr_key_in_node <= end){
+//                 parrays.push_back(curr_node->ptrs.dataPointers[i]); //TODO: nodePointer or dataPointer?
+//             }
+//             if (curr_key_in_node > end)
+//             {
+//                 flag_for_while = false;
+//                 break;
+//             }
+//         }
+//         // cout << "size of parrays " << parrays.size() << "\n";
+//         curr_node = curr_node->nextLeafNode;
+//         if (curr_node == nullptr){
+//             break;
+//         } else {
+//             numOfNodeAccessed++;
+//         }
+//     } while (flag_for_while);
+
+//     //copy to recordaddr
+//     for (int i = 0; i < parrays.size(); i++){
+
+//         Parray* curr_parray = parrays.at(i);
+
+//         vector<Record *> array = curr_parray->getarray();
+//         for (int j = 0; j < array.size(); j++){
+//             record_addr.push_back((char*)array.at(j));
+//         }
+//     }
+//     // cout << "number of record address:" << record_addr.size() << "\n";
+//     cout << "The number of index nodes the process accesses: " << numOfNodeAccessed << endl;
+//     return record_addr;
+// }
+
+// void retrieve_search_statistics_storage(Storage *storage, vector<char *> search_results_addresses)
+// {
+//     int block_count = 0;
+//     int record_count = 0;
+//     float average_rating = 0;
+//     char* prev_block_address = nullptr;
+//     int index = 0;
+//     while(index<search_results_addresses.size())
+//     {
+//         char* current_block_address = storage->record_addr_to_blk_addr(search_results_addresses[index]);
+//         if (current_block_address == prev_block_address)
+//         {
+//             //retrieve the avg rating of the individual record
+//             Record temp_record = storage->retrieve_record(search_results_addresses[index]);
+//             average_rating += temp_record.rating2Dec();
+//             record_count += 1;
+//         }
+//         else{
+//             if(block_count<5)
+//             {
+//                 cout << "This is block number " << block_count + 1 <<" and the block ID is " <<  storage->get_blk_id(current_block_address) <<endl;
+//                 cout << endl;
+//                 cout <<"Tconst of records in the block are"<<endl;
+//                 cout <<endl;
+//                 vector<Record> contents_of_block = storage->retrieve_blk(current_block_address);
+//                 for (int i = 0; i< contents_of_block.size() ; i++)
+//                  {
+//                      cout <<contents_of_block[i].getTconst()<< " | ";
+//                  }
+//                 cout <<endl;
+//             }
+//             //retrieve the avg rating of the individual record
+//             Record temp_record = storage->retrieve_record(search_results_addresses[index]);
+//             average_rating += temp_record.rating2Dec();
+//             // increment record count no matter what, but block count only if its not consecutively the same
+//             record_count += 1;
+//             block_count +=1;
+//         }
+//         //change the prev to current for next loop
+//         prev_block_address = current_block_address;
+//         index++;
+//     }
+//     cout << "The number of data blocks the process accesses: " << block_count<< endl;
+//     //the contents of first 5 printed out beforehand in the if portion
+//     cout << "The number of records found: " << record_count <<endl;
+//     //cout<< "This is the total sum" << average_rating <<endl;
+//     cout << "The average of \"averageRating\'s\" of the records that are returned: " << average_rating/record_count <<endl;
+//     return;
+// }
+
+// void bruteForceSearch (Storage *storage, int start, int end) {
+//     cout << "========== Brute-froce method ==========" << endl;
+
+//     if (end == 0 ) {
+//         end = start;
+//     }
+
+//     auto time1 = high_resolution_clock::now();
+
+//     int count = 0;
+//     char** allBlks = storage->getAllBlocks();
+//     int n = storage->get_allocated_nof_blk();
+//     vector<Record> contents_of_block;
+
+//     for (int i = 0; i < n; i++)
+//     {
+//         char* curBlock = allBlks[i];
+//         contents_of_block = storage->retrieve_blk(curBlock);
+//         int numOfRecords = curRecords.size();
+//         int key;
+//         for (int j = 0; j < numOfRecords; j++)
+//         {
+//             key = contents_of_block[j].getNumOfVotes();
+//             if ((key >= start) && (key <= end)){
+//                 count++;
+//                 cout << "Tconst: " << contents_of_block[j].getTconst() << "; numVotes: " << key << endl;
+//             }
+//         }
+//     }
+//     auto time2 = high_resolution_clock::now();
+//     auto duration1 = duration_case<microseconds>(time2 - time1);
+
+//     cout << "The number of data blocks accessed by brute-force method: " << n << endl; // TODO: just all the blocks right?
+//     cout << "The running time of brute-force method: " << duration1 << endl;
+//     return;
+// }
+
+/*
+void retrieve_search_statistics_index(bplustree* bPlusTree, Node* start_node, int start, int end){
+    if (end == 0)
+    {
+        end = start;
+    }
+    vector<CNode *> nodes_accessed_to_find_start = bPlusTree->AncestoryOfLeafNode(start);
+    vector<Node*> leaf_nodes_accessed_after_finding_start = get_nodes_accessed_at_leaf_level(start_node, start, end);
+
+    int total_index_blocks_accessed = nodes_accessed_to_find_start.size() + leaf_nodes_accessed_after_finding_start.size();
+    cout << "total_index_blocks_accessed = " << total_index_blocks_accessed << "\n";
+    int printcount = 0;
+    int max_printcount = 5;
+    CNode *curr_node = nullptr;
+    for (int j = 0; j < nodes_accessed_to_find_start.size();j++){
+        curr_node = nodes_accessed_to_find_start.at(j);
+        if (curr_node == nullptr){
+            cout<<"SOMETHING IS WRONG\n";
+            return;
+        }
+        cout << "Keys index block " << printcount+1 << " accessed: ";
+        for (int i = 1; i <= curr_node->GetCount();i++){
+            cout << curr_node->GetElement(i)<<" | ";
+        }
+        cout << "\n";
+        printcount++;
+        if (printcount==5){
+            break;
+        }
+    }
+    for (int j = 0; j < leaf_nodes_accessed_after_finding_start.size(); j++)
+    {
+        if (printcount == 5){
+            break;
+        }
+        curr_node = leaf_nodes_accessed_after_finding_start.at(j);
+        if (curr_node == nullptr)
+        {
+            cout << "SOMETHING IS WRONG\n";
+            return;
+        }
+        cout << "Keys index block " << printcount + 1 << " accessed: ";
+        for (int i = 1; i <= curr_node->GetCount(); i++)
+        {
+            cout << curr_node->GetElement(i) << " | ";
+        }
+        cout << "\n";
+        printcount++;
+    }
+}
+vector<Node*> get_nodes_accessed_at_leaf_level(Node* start_node, int start, int end){
+    vector<Node *> nodes_accessed = {}; // excepted start_node
+    if (start == end) {
+        return nodes_accessed;
+    }
+    int curr_key = start;
+    Node *curr_node = start_node;
+    bool flag_for_while = true;
+    do
+    {
+        int i = 1;
+        for (i = 1; (i <= curr_node->GetCount()); i++)
+        {
+            int curr_key_in_node = curr_node->GetElement(i);
+            if (curr_key_in_node >= start && curr_key_in_node <= end)
+            {
+                // parrays.push_back(curr_node->GetPointer1(i));
+            }
+            if (curr_key_in_node > end)
+            {
+                flag_for_while = false;
+                break;
+            }
+        }
+        curr_node = curr_node->m_pNextNode;
+        if (curr_node == nullptr)
+        {
+            break;
+        }
+        nodes_accessed.push_back(curr_node);
+
+    } while (flag_for_while);
+    return nodes_accessed;
+}
+*/
 
 // experiment 5
 void delete_records_in_db(Storage *storage, vector<char *> record_addresses)
