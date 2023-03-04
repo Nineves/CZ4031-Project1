@@ -61,16 +61,19 @@ public:
 
     void updateParents(int newKey, Node *parentAddr, Node *childAddr);
 
-    void updateDeletedParents(int newKey, Node *parentAddr, Node *childAddr);
-
     void createNewRoot(Node *node1, Node *node2);
 
     void printNode(Node *treenode);
 
+    void mergeLeaf(Node *sourceNode, Node *mergeNode);
+
+    void mergeNonLeaf(Node *sourceNode, Node* mergeNode);
+
     bool CheckTree();
 
-    bool CheckNode(Node* pNode);
+    void deleteKey(int key);
 
+    bool CheckNode(Node *pNode);
 };
 
 #endif

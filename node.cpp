@@ -11,11 +11,12 @@ Node::Node(unsigned int blockSize, bool isLeaf)
     unsigned int nodeCapacity = blockSize - sizeof(bool) - 3 * sizeof(int) - INDEX_POINTER_SIZE;
     Node::maxNumOfKeys = getMaxKeys(nodeCapacity);
     this->curNumOfKeys = 0;
+    this->curNumOfPointers = 0;
     this->isLeaf = isLeaf;
     this->blockSize = blockSize;
     this->nextLeafNode = nullptr;
     this->lastLeafNode = nullptr;
-    
+
     keys = (int *)malloc(maxNumOfKeys * sizeof(int));
 
     // Intialize pointers for leaf nodes
@@ -93,8 +94,9 @@ void Node::insertNonLeafKey(int key, Node *newNodeAddress)
     {
         keys[0] = key;
         ptrs.nodePointers[1] = newNodeAddress;
-        
+
         curNumOfKeys++;
+        curNumOfPointers++;
 
         return;
     }
@@ -108,6 +110,7 @@ void Node::insertNonLeafKey(int key, Node *newNodeAddress)
             ptrs.nodePointers[i + 1] = newNodeAddress;
 
             curNumOfKeys++;
+            curNumOfPointers++;
             break;
         }
 
@@ -117,6 +120,7 @@ void Node::insertNonLeafKey(int key, Node *newNodeAddress)
             ptrs.nodePointers[curNumOfKeys + 1] = newNodeAddress;
 
             curNumOfKeys++;
+            curNumOfPointers++;
             break;
         }
     }
@@ -132,6 +136,7 @@ int Node::insertLeafKey(int key, Record *recordAddress)
         newLLNode->insert(recordAddress);
         ptrs.dataPointers[0] = newLLNode;
         curNumOfKeys++;
+        curNumOfPointers++;
 
         return 1;
     }
@@ -146,6 +151,7 @@ int Node::insertLeafKey(int key, Record *recordAddress)
             newLLNode->insert(recordAddress);
             ptrs.dataPointers[i] = newLLNode;
             curNumOfKeys++;
+            curNumOfPointers++;
 
             break;
         }
@@ -164,6 +170,7 @@ int Node::insertLeafKey(int key, Record *recordAddress)
             newLLNode->insert(recordAddress);
             ptrs.dataPointers[curNumOfKeys] = newLLNode;
             curNumOfKeys++;
+            curNumOfPointers++;
 
             break;
         }
@@ -172,55 +179,45 @@ int Node::insertLeafKey(int key, Record *recordAddress)
     return flag;
 }
 
-void Node::deleteNonLeafKey(int key)
-{
-    if (curNumOfKeys == 0)
-    {
-        keys[0] = key;
-        //ptrs.nodePointers[1] = newNodeAddress;
-        curNumOfKeys++;
-
-        return;
-    }
-
-    for (int i = 0; i < curNumOfKeys; i++)
-    {
-        if (keys[i] > key)
-        {
-            doShift(i);
-            keys[i] = key;
-            //ptrs.nodePointers[i + 1] = newNodeAddress;
-
-            curNumOfKeys++;
-            break;
-        }
-
-        if (i == curNumOfKeys - 1)
-        {
-            keys[curNumOfKeys] = key;
-            //ptrs.nodePointers[curNumOfKeys + 1] = newNodeAddress;
-
-            curNumOfKeys++;
-            break;
-        }
-    }
-}
-
-void Node::deleteLeafKey(int key)
+int Node::deleteLeafKey(int key)
 {
     for (int i = 0; i < curNumOfKeys; i++)
     {
         if (keys[i] == key)
         {
             doReverseShift(i);
-            //keys.pop_back();
+            // keys.pop_back();
             delete ptrs.dataPointers[curNumOfKeys];
-            // ptrs.dataPointers[curNumOfKeys] = nullptr;
+            //ptrs.dataPointers[curNumOfKeys] = nullptr;
             curNumOfKeys--;
-            break;
+            curNumOfPointers--;
+            return i;
         }
     }
 }
+
+void Node::moveLeafKey(int ind, int key, LLNode* recordAddr)
+{
+    if (ind == this->curNumOfKeys)
+    {
+        keys[ind] = key;
+        ptrs.dataPointers[ind] = recordAddr;
+        curNumOfKeys++;
+        curNumOfPointers++;
+        return;
+    }
+    else
+    {
+        doShift(ind);
+        keys[ind] = key;
+        ptrs.dataPointers[ind] = recordAddr;
+        curNumOfKeys++;
+        curNumOfPointers++;
+    }
+    
+    
+}
+
 
 void Node::doShift(int start)
 {
@@ -231,6 +228,7 @@ void Node::doShift(int start)
     {
         return;
     }
+
 
     if (isLeaf)
     {
@@ -276,6 +274,22 @@ void Node::doReverseShift(int start)
     }
 }
 
+void Node::updateDeletedParents(int key)
+{
+
+    while (parentAddr != nullptr)
+    {
+        for (int i = 0; i < curNumOfKeys; i++)
+        {
+            if (parentAddr->keys[i] == key)
+            {
+                parentAddr->keys[i] = keys[0];
+                break;
+            }
+        }
+        parentAddr = parentAddr->parentAddr;
+    }
+}
 
 LLNode::LLNode(unsigned int blockSize)
 {

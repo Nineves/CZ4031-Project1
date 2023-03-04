@@ -25,7 +25,7 @@ private:
 public:
     LLNode(unsigned int blockSize);
     ~LLNode(){
-        
+
     };
 
     void insert(Record *newAddress);
@@ -37,6 +37,7 @@ class Node
 private:
     int maxNumOfKeys;
     int curNumOfKeys;
+    int curNumOfPointers;
     unsigned int blockSize;
     Node *parentAddr;
     Node *nextLeafNode;
@@ -59,14 +60,16 @@ public:
     void insertNonLeafKey(int key, Node *newNodeAddress);
     int insertLeafKey(int key, Record *recordAddress);
     void deleteNonLeafKey(int key);
-    void deleteLeafKey(int key);
+    int deleteLeafKey(int key);
     void doShift(int start);
     void doReverseShift(int start);
     void updateKey(int preKey, int curKey);
+    void updateDeletedParents(int key);
     Node(unsigned int blockSize, bool isLeaf);
     ~Node();
     int getMaxKeyNum();
     void printNode();
+    void moveLeafKey(int ind, int key, LLNode* recordAddr);
 };
 
 Node::~Node()
