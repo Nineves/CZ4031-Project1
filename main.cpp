@@ -29,6 +29,7 @@ void buildBPTree(Storage *storage, BPTree *bPlusTree);
 void reportBPTreeStatistics(BPTree* bPlusTree);
 int bruteForce(int target, Storage *storage);
 int bruteForce_range(int start, int end, Storage *storage);
+int bruteForceDelete(int key);
 float calcAverage(vector<Record> records);
 int getNumOfBlksAccessed(vector<char*> recordAddrs, Storage* storage);
 
@@ -77,8 +78,9 @@ int main()
 
     RunExperiment1(storage);
     BPTree* bpt = RunExperiment2(storage);
-    RunExperiment3(storage, bpt);
-    RunExperiment4(storage, bpt);
+    //RunExperiment3(storage, bpt);
+    //RunExperiment4(storage, bpt);
+    RunExperiment5(storage, bpt, 5);
 
 
     while (sel != '6')
@@ -210,6 +212,7 @@ void RunExperiment3(Storage* storage, BPTree *bPlusTree)
     for(int i=0; i < recordAddrs.size(); i ++){
         Record curRecord = storage->retrieve_record(recordAddrs[i]);
         records.push_back(curRecord);
+        cout<<curRecord.rating2Dec()<<endl;
     }
     auto time2 = high_resolution_clock::now();
 
@@ -390,13 +393,63 @@ int bruteForce_range(int start, int end, Storage *storage) {
 
 void RunExperiment5(Storage *storage, BPTree *bPlusTree, int key)
 {
-    bPlusTree->remove(key);
+    auto time1 = high_resolution_clock::now();
+    bPlusTree->remove(key, storage);
+    auto time2 = high_resolution_clock::now();
+
     reportBPTreeStatistics(bPlusTree);
+
+    auto time3 = high_resolution_clock::now();
+    bruteForceDelete(key);
+    auto time4 = high_resolution_clock::now();
+
+    auto duration1 = duration_cast<microseconds>(time2 - time1);
+    auto duration2 = duration_cast<microseconds>(time4 - time3);
+
+    cout << "The running time of the search & deletion process (with B+ Tree): " << duration1.count() << " microseconds" << endl;
+    cout << "The running time of the search & deletion process (in brute force): " << duration2.count() << " microseconds" << endl;
+    cout << "The number of data blocks accessed (in brutal force): " << storage->get_allocated_nof_blk() << endl;
+
+    
 
     // delete_records(storage, bPlusTree, key);
     // report_bPlusTree_statistics(bPlusTree, storage->get_blk_size(), false, true, true, true);
     // cout << "Number of times that a node is deleted = " << num_nodes_deleted << "\n"
     // << "Note: it does not include the number of Parrays deleted (level between leaf nodes and records)"<<endl;
+}
+
+int bruteForceDelete(int target)
+{
+    int count = 0;
+    int flag = 0;
+    int sum = 0;
+    char** allBlks = storage->getAllBlocks();
+    int n = storage->get_allocated_nof_blk();
+    vector<Record> curRecords;
+    char *curr_block_ptr = (char *)storage->get_storage_ptr();
+
+    for (int i = 0; i < n; i++)
+    {
+        char* curBlock = allBlks[i];
+        curRecords = storage->retrieve_blk(curBlock);
+        int numOfRecords = curRecords.size();
+        int key;
+        for (int j = 0; j < numOfRecords; j++)
+        {
+            key = curRecords[j].getNumOfVotes();           
+            Record record = curRecords[j];
+            if (key == target)
+            {
+                char *original_record_pointer = curr_block_ptr + j * (sizeof(Record));
+                storage->delete_item(original_record_pointer, sizeof(Record));
+            }
+            
+            //printf("COUNT  %d\n",count);
+        }
+        count ++;
+    }
+
+    return count;
 }
 
 

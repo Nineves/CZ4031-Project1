@@ -45,7 +45,7 @@ public:
 
     void insert(int key, Record *recordAddress);
 
-    void remove(int key);
+    void remove(int key, Storage *storage);
 
     int split(Node *nodeToSplit, int key, Node *insertNode);
 
