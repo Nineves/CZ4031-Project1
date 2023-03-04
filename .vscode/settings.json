@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "new": "cpp",
+        "algorithm": "cpp",
+        "cmath": "cpp"
+    }
+}
