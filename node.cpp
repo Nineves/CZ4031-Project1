@@ -11,6 +11,7 @@ Node::Node(unsigned int blockSize, bool isLeaf)
     unsigned int nodeCapacity = blockSize - sizeof(bool) - 3 * sizeof(int) - INDEX_POINTER_SIZE;
     Node::maxNumOfKeys = getMaxKeys(nodeCapacity);
     this->curNumOfKeys = 0;
+    this->curNumOfPointers = 0;
     this->isLeaf = isLeaf;
     this->blockSize = blockSize;
     this->nextLeafNode = nullptr;
@@ -95,6 +96,7 @@ void Node::insertNonLeafKey(int key, Node *newNodeAddress)
         ptrs.nodePointers[1] = newNodeAddress;
 
         curNumOfKeys++;
+        curNumOfPointers++;
 
         return;
     }
@@ -108,6 +110,7 @@ void Node::insertNonLeafKey(int key, Node *newNodeAddress)
             ptrs.nodePointers[i + 1] = newNodeAddress;
 
             curNumOfKeys++;
+            curNumOfPointers++;
             break;
         }
 
@@ -117,6 +120,7 @@ void Node::insertNonLeafKey(int key, Node *newNodeAddress)
             ptrs.nodePointers[curNumOfKeys + 1] = newNodeAddress;
 
             curNumOfKeys++;
+            curNumOfPointers++;
             break;
         }
     }
@@ -132,6 +136,7 @@ int Node::insertLeafKey(int key, Record *recordAddress)
         newLLNode->insert(recordAddress);
         ptrs.dataPointers[0] = newLLNode;
         curNumOfKeys++;
+        curNumOfPointers++;
 
         return 1;
     }
@@ -146,6 +151,7 @@ int Node::insertLeafKey(int key, Record *recordAddress)
             newLLNode->insert(recordAddress);
             ptrs.dataPointers[i] = newLLNode;
             curNumOfKeys++;
+            curNumOfPointers++;
 
             break;
         }
@@ -164,6 +170,7 @@ int Node::insertLeafKey(int key, Record *recordAddress)
             newLLNode->insert(recordAddress);
             ptrs.dataPointers[curNumOfKeys] = newLLNode;
             curNumOfKeys++;
+            curNumOfPointers++;
 
             break;
         }
@@ -181,12 +188,36 @@ void Node::deleteLeafKey(int key)
             doReverseShift(i);
             // keys.pop_back();
             delete ptrs.dataPointers[curNumOfKeys];
-            // ptrs.dataPointers[curNumOfKeys] = nullptr;
+            //ptrs.dataPointers[curNumOfKeys] = nullptr;
             curNumOfKeys--;
+            curNumOfPointers--;
             break;
         }
     }
 }
+
+void Node::moveLeafKey(int ind, int key, LLNode* recordAddr)
+{
+    if (ind == this->curNumOfKeys)
+    {
+        keys[ind] = key;
+        ptrs.dataPointers[ind] = recordAddr;
+        curNumOfKeys++;
+        curNumOfPointers++;
+        return;
+    }
+    else
+    {
+        doShift(ind);
+        keys[ind] = key;
+        ptrs.dataPointers[ind] = recordAddr;
+        curNumOfKeys++;
+        curNumOfPointers++;
+    }
+    
+    
+}
+
 
 void Node::doShift(int start)
 {
@@ -197,6 +228,7 @@ void Node::doShift(int start)
     {
         return;
     }
+
 
     if (isLeaf)
     {

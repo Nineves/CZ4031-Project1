@@ -37,6 +37,7 @@ class Node
 private:
     int maxNumOfKeys;
     int curNumOfKeys;
+    int curNumOfPointers;
     unsigned int blockSize;
     Node *parentAddr;
     Node *nextLeafNode;
@@ -69,6 +70,7 @@ public:
     ~Node();
     int getMaxKeyNum();
     void printNode();
+    void moveLeafKey(int ind, int key, LLNode* recordAddr);
 };
 
 Node::~Node()
